@@ -4,6 +4,26 @@ version = "0.1.0"
 authors = ["lemonxah <lemon.xah@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+jwt = "0.10.0"
+rocket = "0.4.6"
+rocket_codegen = "0.4.6"
+rocket_contrib = { version = "0.4.6", default-features = false, features = ["json"] }
+rocket_cors = "0.5.2"
+serde = "1.0.123"
+serde_json = "1.0.62"
+serde_derive = "1.0.123"
+tokio = { version = "1.2.0", features = ["full"] }
+mongodb = { version = "1.1.1", default-features = false, features = ["sync"] }
+bson = "1.1.0"
+hmac = "0.8.1"
+sha2 = "0.9.1"
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+rust-crypto = "0.2.36"
+
+d3ne = "0.1.1"
+funlib = "0.1.7"
+
+[[bin]]
+name = "rules"
+path = "src/main.rs"

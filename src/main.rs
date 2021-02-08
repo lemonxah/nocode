@@ -1,3 +1,95 @@
-fn main() {
-    println!("Hello, world!");
+#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(option_result_contains)]
+#![feature(try_trait)]
+
+#[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_contrib;
+#[macro_use] extern crate serde_derive;
+#[macro_use] extern crate bson;
+extern crate rocket_cors;
+extern crate jwt;
+extern crate funlib;
+extern crate crypto;
+extern crate uuid;
+extern crate mongodb;
+extern crate tokio;
+extern crate d3ne;
+
+#[macro_use] mod util;
+mod apikey;
+mod rules;
+
+use rocket::http::Status;
+use rocket_cors::{CorsOptions, Cors};
+use mongodb::{sync::Client, options::ClientOptions, sync::Collection};
+
+use std::sync::{Arc, Mutex};
+use std::{env, thread, time, str};
+
+use funlib:: {
+  Foldable::*,
+};
+
+#[derive(Debug)]
+enum MainError {
+  MongoError(mongodb::error::Error),
+  RocketCorsError(rocket_cors::Error),
+  SerdeJsonError(serde_json::error::Error),
+}
+
+impl From<serde_json::error::Error> for MainError {
+  fn from(e: serde_json::error::Error) -> Self {
+    MainError::SerdeJsonError(e)
+  }
+}
+
+impl From<rocket_cors::Error> for MainError {
+  fn from(e: rocket_cors::Error) -> Self {
+    MainError::RocketCorsError(e)
+  }
+}
+
+impl From<mongodb::error::Error> for MainError {
+  fn from(e: mongodb::error::Error) -> Self {
+    MainError::MongoError(e)
+  }
+}
+
+#[get("/rulesservice/healthcheck")]
+fn healthcheck() -> Status {
+  Status::Ok
+}
+
+#[tokio::main]
+async fn main() -> std::result::Result<(), MainError> {
+
+  let conn_string = match env::var("DB_CONN_STRING") {
+    Ok(cs) => cs,
+    Err(_) => "mongodb://localhost:27017".to_owned(),
+  };
+  
+  let mut client_options = ClientOptions::parse(&conn_string).await?;
+
+  client_options.app_name = Some("rules".to_string());
+  let client = Client::with_options(client_options)?;
+
+  let cors: Cors = match env::var("CORS_JSON") {
+    Err(_) => CorsOptions::default(),
+    Ok(cors) => serde_json::from_str(&cors)?,
+  }.to_cors()?;
+
+  rocket::ignite()
+    .mount("/v1", routes![
+      healthcheck,
+      rules::save_rule,
+      rules::get_rules,
+      rules::get_rule,
+      rules::run_rule,
+    ])
+    .attach(cors)
+    .register(catchers![
+      util::unauthorized_catcher, 
+      util::not_found_catcher,
+    ]).manage(client).launch();
+    Ok(())
 }
