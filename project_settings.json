@@ -1,0 +1,174 @@
+[
+  {
+    "project_type": 1,
+    "build_with": [
+      {
+        "tool": "docker",
+        "build_args": [],
+        "docker_file_path": "."
+      }
+    ],
+    "aws_environment_variables": [
+      {
+        "dev": [
+          {
+            "DB_CONN_STRING": "$MONGO_ADDRESS"
+          },
+          {
+            "JWT_SECRET": "$JWT_SECRET"
+          },
+          {
+            "ENV": "dev"
+          },
+          {
+            "AMQP_ADDR": "$MQ_CONN_STRING"
+          },
+          {
+            "CORS_JSON": { 
+              "allowed_origins": { 
+                "Some": { 
+                  "exact": [
+                    "https://dev.platform.wealthmigrate.com",
+                    "http://localhost:3000", 
+                    "https://dev.operations.wealthmigrate.com",
+                    "https://platform.privatewealthglobal.com"
+                  ] 
+                }
+              }, 
+              "allowed_methods": ["POST","GET"], 
+              "allowed_headers": { 
+                "Some": [ 
+                  "Authorization",
+                  "content-type"
+                ]
+              },
+              "allow_credentials": true, 
+              "expose_headers": [ "Content-Type" ],
+              "max_age": null,
+              "send_wildcard": false,
+              "fairing_route_base": "/v2" 
+            }
+          }
+        ]
+      },
+      {
+        "stg": [
+          {
+            "DB_CONN_STRING": "$MONGO_ADDRESS"
+          },
+          {
+            "JWT_SECRET": "$JWT_SECRET"
+          },
+          {
+            "ENV": "stg"
+          },
+          {
+            "CORS_JSON": { 
+              "allowed_origins": { 
+                "Some": { 
+                  "exact": [
+                    "https://stg.platform.wealthmigrate.com", 
+                    "http://localhost:3000", 
+                    "https://stg.operations.wealthmigrate.com",
+                    "https://platform.privatewealthglobal.com"
+                  ] 
+                }
+              }, 
+              "allowed_methods": ["POST","GET"], 
+              "allowed_headers": { 
+                "Some": [ 
+                  "Authorization",
+                  "content-type"
+                ]
+              },
+              "allow_credentials": true, 
+              "expose_headers": [ "Content-Type" ],
+              "max_age": null,
+              "send_wildcard": false,
+              "fairing_route_base": "/v2" 
+            }
+          }
+        ]
+      },
+      {
+        "prd": [
+          {
+            "DB_CONN_STRING": "$MONGO_ADDRESS"
+          },
+          {
+            "JWT_SECRET": "$JWT_SECRET"
+          },
+          {
+            "ENV": "prd"
+          },
+          {
+            "CORS_JSON": { 
+              "allowed_origins": { 
+                "Some": { 
+                  "exact": [
+                    "https://platform.wealthmigrate.com",
+                    "https://operations.wealthmigrate.com",
+                    "https://platform.privatewealthglobal.com"
+                  ] 
+                }
+              }, 
+              "allowed_methods": ["POST","GET"], 
+              "allowed_headers": { 
+                "Some": [ 
+                  "Authorization",
+                  "content-type"
+                ]
+              },
+              "allow_credentials": true, 
+              "expose_headers": [ "Content-Type" ],
+              "max_age": null,
+              "send_wildcard": false,
+              "fairing_route_base": "/v2" 
+            }
+          }
+        ]
+      }
+    ],
+    "secrets": [
+      {
+        "type": "Secret text",
+        "id": "MONGO_ADDRESS",
+        "variable": "MONGO_ADDRESS"
+      },
+      {
+        "type": "Secret text",
+        "id": "JWT_SECRET",
+        "variable": "JWT_SECRET"
+      }
+    ],
+    "aws_service_routes": [
+      {
+        "dev": {
+          "healthcheck": "/v1/rulesservice/healthcheck",
+          "routes": [
+            {
+              "*.wealthmigrate.com": "/v1/rules"
+            }
+          ]
+        },
+        "stg": {
+          "healthcheck": "/v1/rulesservice/healthcheck",
+          "routes": [
+            {
+              "*.wealthmigrate.com": "/v1/rules"
+            }
+          ]
+        },
+        "prd": {
+          "healthcheck": "/v1/rulesservice/healthcheck",
+          "routes": [
+            {
+              "*.wealthmigrate.com": "/v1/rules"
+            }
+          ]
+        }
+      }
+    ],
+    "big_build": "y"
+  }
+]
