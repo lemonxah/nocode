@@ -1,5 +1,6 @@
-mod modules;
+mod nodes;
 
+use std::rc::Rc;
 use mongodb::sync::Client;
 use mongodb::options::FindOptions;
 use rocket::State;
@@ -73,11 +74,12 @@ impl From<mongodb::error::Error> for RuleError {
   }
 }
 
-fn setup_engine(id: &str) -> Engine {
+fn setup_engine(id: &str, conn: State<Client>) -> Engine {
   let mut workers = Workers::new();
-  workers.put("Number", Box::new(modules::number));
-  workers.put("Add", Box::new(modules::add));
-  workers.put("Multiply", Box::new(modules::multiply));
+  workers.put("Number", Box::new(nodes::number));
+  workers.put("Add", Box::new(nodes::add));
+  workers.put("Multiply", Box::new(nodes::multiply));
+  workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
   Engine::new(id, workers)
 }
 
@@ -90,8 +92,8 @@ pub fn run_rule(name: String, data: Json<JsonValue>, apikey: ApiKey, conn: State
   }
 }
 
-#[get("/rules/<name>",format="application/json", data="<data>")]
-pub fn get_rule(name: String, data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules/<name>")]
+pub fn get_rule(name: String, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "read") {
     Ok(status::Custom(Status::Ok, json!({})))
   } else {
@@ -108,8 +110,8 @@ pub fn save_rule(data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> 
   }
 }
 
-#[get("/rules",format="application/json", data="<data>")]
-pub fn get_rules(data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules")]
+pub fn get_rules(apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "save") {
     Ok(status::Custom(Status::Ok, json!({})))
   } else {
