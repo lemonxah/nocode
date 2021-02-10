@@ -21,8 +21,12 @@ sha2 = "0.9.1"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 rust-crypto = "0.2.36"
 
-d3ne = "0.1.1"
+handlebars = "3.5.2"
+js-sandbox = "0.1.5"
+
+d3ne = "0.2.0"
 funlib = "0.1.7"
+querylib = { version = "0.2.2", features = ["mongo", "parse"] }
 
 [[bin]]
 name = "rules"

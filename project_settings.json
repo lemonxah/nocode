@@ -148,6 +148,9 @@
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruletest"
             }
           ]
         },
@@ -156,6 +159,9 @@
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruletest"
             }
           ]
         },
@@ -164,6 +170,9 @@
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruletest"
             }
           ]
         }

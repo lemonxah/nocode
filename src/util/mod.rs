@@ -25,9 +25,9 @@ pub fn unauthorized_catcher(req: &rocket::Request<'_>) -> Result<status::Custom<
       ApiKeyError::SysTimeError(_) => (5, "system time error"),
       ApiKeyError::InvalidKeyLength => (6, "invalid secret key length")
     };
-    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":c, "message": msg}]}])))
+    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":c, "message": msg}]}]).into()))
   } else {
-    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":0, "message": "unknown"}]}])))
+    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":0, "message": "unknown"}]}]).into()))
   }
 }
 
@@ -38,12 +38,12 @@ pub fn to_bson_owned<A>(a: &A) -> Result<bson::Document, bson::ser::Error> where
 }
 
 pub fn unauthorized() -> status::Custom<JsonValue> {
-  status::Custom(Status::Unauthorized, json!([{"errors": [{"code":5, "message": "does not have access to this call"}]}]))
+  status::Custom(Status::Unauthorized, json!([{"errors": [{"code":5, "message": "does not have access to this call"}]}]).into())
 }
 
 #[catch(404)]
 pub fn not_found_catcher() -> status::Custom<JsonValue> {
-  status::Custom(Status::NotFound, json!([{"errors": [{"code":"1", "message": "not found"}]}]))
+  status::Custom(Status::NotFound, json!([{"errors": [{"code":"1", "message": "not found"}]}]).into())
 }
 
 macro_rules! to_vec {
@@ -52,7 +52,7 @@ macro_rules! to_vec {
       let mut v: Vec<_> = vec![];
       for doc in $cursor {
         if let Ok(d) = doc {
-          v.push(bson::from_bson(bson::to_bson(&d)?)?);
+          v.push(bson::from_bson(bson::to_bson(&d).unwrap()).unwrap());
         }
       }
       v

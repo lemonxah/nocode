@@ -1,21 +1,17 @@
-mod nodes;
+pub mod nodes;
 
+use serde_json::Value;
 use std::rc::Rc;
+use std::convert::TryInto;
 use mongodb::sync::Client;
-use mongodb::options::FindOptions;
 use rocket::State;
 use rocket_contrib::json::{JsonValue, Json};
 use rocket::response::status;
 use rocket::http::Status;
-use funlib::{
-  Foldable::*,
-  Functor,
-};
 use d3ne::engine::*;
 use d3ne::workers::Workers;
-use uuid::Uuid;
+
 use crate::apikey::{ApiKey, check_access};
-use crate::util;
 
 #[derive(Debug, Serialize, Clone)]
 pub enum RuleError {
@@ -74,48 +70,66 @@ impl From<mongodb::error::Error> for RuleError {
   }
 }
 
-fn setup_engine(id: &str, conn: State<Client>) -> Engine {
+fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   let mut workers = Workers::new();
+  workers.put("Input", nodes::input(payload));
+  workers.put("Output", Box::new(nodes::output));
   workers.put("Number", Box::new(nodes::number));
   workers.put("Add", Box::new(nodes::add));
   workers.put("Multiply", Box::new(nodes::multiply));
+  workers.put("Convert", Box::new(nodes::convert));
+  workers.put("Template", Box::new(nodes::template));
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
   Engine::new(id, workers)
 }
 
-#[post("/rules/<name>",format="application/json", data="<data>")]
-pub fn run_rule(name: String, data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[post("/rules/<_name>",format="application/json", data="<_data>")]
+pub fn run_rule(_name: String, _data: Json<JsonValue>, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "run") {
-    Ok(status::Custom(Status::Ok, json!({})))
+    Ok(status::Custom(Status::Ok, json!({}).into()))
   } else {
-    Ok(status::Custom(Status::NotFound, json!({})))
+    Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
-#[get("/rules/<name>")]
-pub fn get_rule(name: String, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules/<_name>")]
+pub fn get_rule(_name: String, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "read") {
-    Ok(status::Custom(Status::Ok, json!({})))
+    Ok(status::Custom(Status::Ok, json!({}).into()))
   } else {
-    Ok(status::Custom(Status::NotFound, json!({})))
+    Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
-#[post("/rules",format="application/json", data="<data>")]
-pub fn save_rule(data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[post("/rules",format="application/json", data="<_data>")]
+pub fn save_rule(_data: Json<JsonValue>, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "save") {
-    Ok(status::Custom(Status::Ok, json!({})))
+    Ok(status::Custom(Status::Ok, json!({}).into()))
   } else {
-    Ok(status::Custom(Status::NotFound, json!({})))
+    Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
 #[get("/rules")]
-pub fn get_rules(apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  if check_access(&apikey, "rules", "save") {
-    Ok(status::Custom(Status::Ok, json!({})))
+pub fn get_rules(apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+  if check_access(&apikey, "rules", "read") {
+    Ok(status::Custom(Status::Ok, json!({}).into()))
   } else {
-    Ok(status::Custom(Status::NotFound, json!({})))
+    Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
+#[post("/ruletest",format="application/json", data="<data>")]
+pub fn test_rule(data: Json<Value>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+  if check_access(&apikey, "rules", "test") {
+    let engine = setup_engine("rules@1.0.0", conn, data.0["payload"].clone());
+    let json_data: String = serde_json::to_string(&data.0["rule"]).unwrap();
+    let nodes = engine.parse_json(&json_data).unwrap();
+    let output = engine.process(&nodes, 1).unwrap();
+    let payload = output["payload"].get::<Value>().unwrap();
+    let status = output["status"].get::<i64>().unwrap();
+    Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
+  } else {
+    Ok(status::Custom(Status::NotFound, json!({}).into()))
+  }
+}

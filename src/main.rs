@@ -3,9 +3,11 @@
 #![feature(try_trait)]
 
 #[macro_use] extern crate rocket;
-#[macro_use] extern crate rocket_contrib;
+extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
-#[macro_use] extern crate bson;
+extern crate bson;
+extern crate querylib;
+#[macro_use] extern crate serde_json;
 extern crate rocket_cors;
 extern crate jwt;
 extern crate funlib;
@@ -13,7 +15,9 @@ extern crate crypto;
 extern crate uuid;
 extern crate mongodb;
 extern crate tokio;
-extern crate d3ne;
+#[macro_use] extern crate d3ne;
+extern crate handlebars;
+extern crate js_sandbox;
 
 #[macro_use] mod util;
 mod apikey;
@@ -21,14 +25,9 @@ mod rules;
 
 use rocket::http::Status;
 use rocket_cors::{CorsOptions, Cors};
-use mongodb::{sync::Client, options::ClientOptions, sync::Collection};
+use mongodb::{sync::Client, options::ClientOptions};
 
-use std::sync::{Arc, Mutex};
-use std::{env, thread, time, str};
-
-use funlib:: {
-  Foldable::*,
-};
+use std::env;
 
 #[derive(Debug)]
 enum MainError {
@@ -85,6 +84,7 @@ async fn main() -> std::result::Result<(), MainError> {
       rules::get_rules,
       rules::get_rule,
       rules::run_rule,
+      rules::test_rule,
     ])
     .attach(cors)
     .register(catchers![
