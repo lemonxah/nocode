@@ -509,9 +509,9 @@ dependencies = [
 
 [[package]]
 name = "d3ne"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f824b466b5d1d613d26ec33325bbfd84b6beaa615f14c77722cb10975a4491ac"
+checksum = "829090b3a1dc60448704f7538b34360d142eb9090ff687ca40b8cfc36f2ca992"
 dependencies = [
  "serde",
  "serde_json",

@@ -7,9 +7,9 @@ COPY src/ ./src/
 
 RUN ["cargo", "build", "-Z", "unstable-options", "--out-dir", "output"]
 
-FROM archlinux
-RUN pacman -Suy --noconfirm
-RUN pacman -S openssl --noconfirm
+FROM alphine
+RUN apk update
+RUN apk add openssl
 COPY --from=builder \
     output/rules \
     /

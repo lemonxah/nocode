@@ -17,6 +17,13 @@ pub fn number(node: Node, _inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
+pub fn text(node: Node, _inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let result = node.data["txt"].to_string().parse::<String>().unwrap();
+  map.insert("txt".to_string(), iodata!(result));
+  Rc::new(map)
+}
+
 pub fn add(node: Node, inputs: InputData) -> OutputData {
   let num = node.get_number_field("num", &inputs).unwrap();
   let num2 = node.get_number_field("num2", &inputs).unwrap();
@@ -57,10 +64,10 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
   let data2 = node.get_as_json_field("data2", &inputs).unwrap_or(json!({}));
   let data3 = node.get_as_json_field("data3", &inputs).unwrap_or(json!({}));
   let data4 = node.get_as_json_field("data4", &inputs).unwrap_or(json!({}));
-  let name1 = node.get_str_field("name1", &inputs).unwrap_or("data1");
-  let name2 = node.get_str_field("name2", &inputs).unwrap_or("data2");
-  let name3 = node.get_str_field("name3", &inputs).unwrap_or("data3");
-  let name4 = node.get_str_field("name4", &inputs).unwrap_or("data4");
+  let name1 = node.get_string_field("name1", &inputs).unwrap_or("data1".to_string());
+  let name2 = node.get_string_field("name2", &inputs).unwrap_or("data2".to_string());
+  let name3 = node.get_string_field("name3", &inputs).unwrap_or("data3".to_string());
+  let name4 = node.get_string_field("name4", &inputs).unwrap_or("data4".to_string());
   let new_json = format!("{{ \"{}\": {}, \"{}\": {}, \"{}\": {}, \"{}\": {} }}", 
     name1, serde_json::to_string(&data1).unwrap(),
     name2, serde_json::to_string(&data2).unwrap(),
@@ -73,10 +80,22 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
 
 pub fn template(node: Node, inputs: InputData) -> OutputData {
   let payload = node.get_json_field("payload", &inputs).unwrap();
-  let template_txt = node.get_str_field("template", &inputs).unwrap();
+  let template_txt = node.get_string_field("template", &inputs).unwrap();
   let reg = Handlebars::new();
   let mut map = HashMap::new();
-  match reg.render_template(template_txt, &payload) {
+  match reg.render_template(&template_txt, &payload) {
+    Err(_) => map.insert("err".to_string(), iodata!(json!({"error": "unable to render template"}))),
+    Ok(output) => map.insert("json".to_string(), iodata!(output)),
+  };
+  Rc::new(map)
+}
+
+pub fn template_json(node: Node, inputs: InputData) -> OutputData {
+  let payload = node.get_json_field("payload", &inputs).unwrap();
+  let template_txt = node.get_string_field("template", &inputs).unwrap();
+  let reg = Handlebars::new();
+  let mut map = HashMap::new();
+  match reg.render_template(&template_txt, &payload) {
     Err(_) => map.insert("err".to_string(), iodata!(json!({"error": "unable to render template"}))),
     Ok(output) => map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&output).unwrap())),
   };
@@ -106,15 +125,15 @@ pub fn output(node: Node, inputs: InputData) -> OutputData {
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
-    let dbname = node.get_str_field("db", &inputs).unwrap();
-    let colname = node.get_str_field("col", &inputs).unwrap();
+    let dbname = node.get_string_field("db", &inputs).unwrap();
+    let colname = node.get_string_field("col", &inputs).unwrap();
 
-    let squery = node.get_str_field("query", &inputs).unwrap();
+    let squery = node.get_string_field("query", &inputs).unwrap();
     let limit = node.get_number_field("limit", &inputs).unwrap();
 
-    let db = conn.database(dbname);
-    let coll = db.collection(colname);
-    let pquery = query::parse::from_str(squery);
+    let db = conn.database(&dbname);
+    let coll = db.collection(&colname);
+    let pquery = query::parse::from_str(&squery);
     let query = mongo::to_bson(query!(..pquery && "deleted" == false));
 
     let options = FindOptions::builder()

@@ -87,7 +87,7 @@ pub fn get_apikey(token: &str) -> Result<ApiKey, ApiKeyError> {
 }
 
 pub fn check_access(apikey: &ApiKey, scope: &str, action: &str) -> bool {
-  apikey.scopes.any(|s| s.scope == "all" && s.actions.contains(&"all".to_owned())) ||
+  apikey.scopes.any(|s| s.scope == "all" && s.actions.contains(&"all".to_owned())) || // todo: REMOVE before release to prod
   apikey.scopes.find(|s| s.scope == scope).any(|s| s.actions.contains(&action.to_owned()))
 }
 

@@ -75,10 +75,13 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Input", nodes::input(payload));
   workers.put("Output", Box::new(nodes::output));
   workers.put("Number", Box::new(nodes::number));
+  workers.put("Text", Box::new(nodes::text));
   workers.put("Add", Box::new(nodes::add));
   workers.put("Multiply", Box::new(nodes::multiply));
   workers.put("Convert", Box::new(nodes::convert));
   workers.put("Template", Box::new(nodes::template));
+  workers.put("JsonTemplate", Box::new(nodes::template_json));
+  workers.put("Combine", Box::new(nodes::combine));
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
   Engine::new(id, workers)
 }
@@ -125,7 +128,10 @@ pub fn test_rule(data: Json<Value>, apikey: ApiKey, conn: State<Client>) -> Resu
     let engine = setup_engine("rules@1.0.0", conn, data.0["payload"].clone());
     let json_data: String = serde_json::to_string(&data.0["rule"]).unwrap();
     let nodes = engine.parse_json(&json_data).unwrap();
-    let output = engine.process(&nodes, 1).unwrap();
+    let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
+    let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
+
+    let output = engine.process(&nodes, start_node).unwrap();
     let payload = output["payload"].get::<Value>().unwrap();
     let status = output["status"].get::<i64>().unwrap();
     Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
