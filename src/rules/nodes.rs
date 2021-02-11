@@ -82,11 +82,16 @@ pub fn template(node: Node, inputs: InputData) -> OutputData {
   println!("template node running");
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
+  dbg!(&template_txt);
+  dbg!(&template_txt.to_string());
   let reg = Handlebars::new();
   let mut map = HashMap::new();
   match reg.render_template(&template_txt, &payload) {
-    Err(_) => map.insert("err".to_string(), iodata!(json!({"error": "unable to render template"}))),
-    Ok(output) => map.insert("json".to_string(), iodata!(output)),
+    Err(_) => map.insert("err".to_string(), iodata!("")),
+    Ok(output) => {
+      println!("{}: {}", "output", &output);
+      map.insert("output".to_string(), iodata!(output))
+    },
   };
   Rc::new(map)
 }
@@ -129,15 +134,19 @@ pub fn output(node: Node, inputs: InputData) -> OutputData {
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
     println!("mongodb node running");
-    let dbname = node.get_string_field("db", &inputs).unwrap();
-    let colname = node.get_string_field("col", &inputs).unwrap();
-
+    let dbname = node.get_string_field("dbname", &inputs).unwrap();
+    let colname = node.get_string_field("colname", &inputs).unwrap();
+    dbg!(&dbname, &colname);
     let squery = node.get_string_field("query", &inputs).unwrap();
-    let limit = node.get_number_field("limit", &inputs).unwrap();
+    let limit = node.get_number_field("limit", &inputs).unwrap_or(10);
 
     let db = conn.database(&dbname);
     let coll = db.collection(&colname);
+
+    println!("{}", &squery);
+
     let pquery = query::parse::from_str(&squery);
+    dbg!(&pquery);
     let query = mongo::to_bson(query!(..pquery && "deleted" == false));
 
     let options = FindOptions::builder()

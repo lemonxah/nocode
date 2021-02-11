@@ -51,7 +51,7 @@
               ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2"
+              "fairing_route_base": "/v1"
             }
           }
         ]
@@ -95,7 +95,7 @@
               ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2"
+              "fairing_route_base": "/v1"
             }
           }
         ]
@@ -138,7 +138,7 @@
               ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2"
+              "fairing_route_base": "/v1"
             }
           }
         ]
