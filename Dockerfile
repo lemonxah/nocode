@@ -7,9 +7,8 @@ COPY src/ ./src/
 
 RUN ["cargo", "build", "-Z", "unstable-options", "--out-dir", "output"]
 
-FROM alphine
-RUN apk update
-RUN apk add openssl
+FROM ubuntu
+RUN apt-get update  && apt-get upgrade -y &&  apt-get install openssl -y
 COPY --from=builder \
     output/rules \
     /
