@@ -24,29 +24,34 @@
             "AMQP_ADDR": "$MQ_CONN_STRING"
           },
           {
-            "CORS_JSON": { 
-              "allowed_origins": { 
-                "Some": { 
+            "CORS_JSON": {
+              "allowed_origins": {
+                "Some": {
                   "exact": [
                     "https://dev.platform.wealthmigrate.com",
-                    "http://localhost:3000", 
+                    "http://localhost:3000",
                     "https://dev.operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com"
-                  ] 
+                  ]
                 }
-              }, 
-              "allowed_methods": ["POST","GET"], 
-              "allowed_headers": { 
-                "Some": [ 
+              },
+              "allowed_methods": [
+                "POST",
+                "GET"
+              ],
+              "allowed_headers": {
+                "Some": [
                   "Authorization",
                   "content-type"
                 ]
               },
-              "allow_credentials": true, 
-              "expose_headers": [ "Content-Type" ],
+              "allow_credentials": true,
+              "expose_headers": [
+                "Content-Type"
+              ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2" 
+              "fairing_route_base": "/v2"
             }
           }
         ]
@@ -63,29 +68,34 @@
             "ENV": "stg"
           },
           {
-            "CORS_JSON": { 
-              "allowed_origins": { 
-                "Some": { 
+            "CORS_JSON": {
+              "allowed_origins": {
+                "Some": {
                   "exact": [
-                    "https://stg.platform.wealthmigrate.com", 
-                    "http://localhost:3000", 
+                    "https://stg.platform.wealthmigrate.com",
+                    "http://localhost:3000",
                     "https://stg.operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com"
-                  ] 
+                  ]
                 }
-              }, 
-              "allowed_methods": ["POST","GET"], 
-              "allowed_headers": { 
-                "Some": [ 
+              },
+              "allowed_methods": [
+                "POST",
+                "GET"
+              ],
+              "allowed_headers": {
+                "Some": [
                   "Authorization",
                   "content-type"
                 ]
               },
-              "allow_credentials": true, 
-              "expose_headers": [ "Content-Type" ],
+              "allow_credentials": true,
+              "expose_headers": [
+                "Content-Type"
+              ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2" 
+              "fairing_route_base": "/v2"
             }
           }
         ]
@@ -102,28 +112,33 @@
             "ENV": "prd"
           },
           {
-            "CORS_JSON": { 
-              "allowed_origins": { 
-                "Some": { 
+            "CORS_JSON": {
+              "allowed_origins": {
+                "Some": {
                   "exact": [
                     "https://platform.wealthmigrate.com",
                     "https://operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com"
-                  ] 
+                  ]
                 }
-              }, 
-              "allowed_methods": ["POST","GET"], 
-              "allowed_headers": { 
-                "Some": [ 
+              },
+              "allowed_methods": [
+                "POST",
+                "GET"
+              ],
+              "allowed_headers": {
+                "Some": [
                   "Authorization",
                   "content-type"
                 ]
               },
-              "allow_credentials": true, 
-              "expose_headers": [ "Content-Type" ],
+              "allow_credentials": true,
+              "expose_headers": [
+                "Content-Type"
+              ],
               "max_age": null,
               "send_wildcard": false,
-              "fairing_route_base": "/v2" 
+              "fairing_route_base": "/v2"
             }
           }
         ]
