@@ -82,6 +82,7 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Template", Box::new(nodes::template));
   workers.put("JsonTemplate", Box::new(nodes::template_json));
   workers.put("Combine", Box::new(nodes::combine));
+  workers.put("Script", Box::new(nodes::script));
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
   Engine::new(id, workers)
 }
@@ -132,7 +133,6 @@ pub fn test_rule(data: Json<Value>, apikey: ApiKey, conn: State<Client>) -> Resu
     let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
 
     let output = engine.process(&nodes, start_node).unwrap();
-    dbg!("output", &output);
     let payload = output["payload"].get::<Value>().unwrap();
     let status = output["status"].get::<i64>().unwrap();
     Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))

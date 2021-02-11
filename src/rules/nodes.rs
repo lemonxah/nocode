@@ -4,7 +4,7 @@ use mongodb::sync::Client;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-// use js_sandbox::{Script, AnyError};
+use js_sandbox::Script;
 use handlebars::Handlebars;
 
 use d3ne::node::*;
@@ -17,9 +17,9 @@ pub fn number(node: Node, _inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
-pub fn text(node: Node, _inputs: InputData) -> OutputData {
+pub fn text(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let result = node.data["txt"].to_string().parse::<String>().unwrap();
+  let result = node.get_string_field("txt", &inputs).unwrap();
   map.insert("txt".to_string(), iodata!(result));
   Rc::new(map)
 }
@@ -79,30 +79,23 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
 }
 
 pub fn template(node: Node, inputs: InputData) -> OutputData {
-  println!("template node running");
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
-  dbg!(&template_txt);
-  dbg!(&template_txt.to_string());
   let reg = Handlebars::new();
   let mut map = HashMap::new();
-  match reg.render_template(&template_txt, &payload) {
+  match reg.render_template(&template_txt, &json!({"payload": payload})) {
     Err(_) => map.insert("err".to_string(), iodata!("")),
-    Ok(output) => {
-      println!("{}: {}", "output", &output);
-      map.insert("output".to_string(), iodata!(output))
-    },
+    Ok(output) => map.insert("output".to_string(), iodata!(output)),
   };
   Rc::new(map)
 }
 
 pub fn template_json(node: Node, inputs: InputData) -> OutputData {
-  println!("template json node running");
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
   let reg = Handlebars::new();
   let mut map = HashMap::new();
-  match reg.render_template(&template_txt, &payload) {
+  match reg.render_template(&template_txt, &json!({"payload": payload})) {
     Err(_) => map.insert("err".to_string(), iodata!(json!({"error": "unable to render template"}))),
     Ok(output) => map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&output).unwrap())),
   };
@@ -118,7 +111,6 @@ pub fn input(payload: Value) -> Box<dyn Fn(Node, InputData) -> OutputData> {
 }
 
 pub fn output(node: Node, inputs: InputData) -> OutputData {
-  println!("output node running");
   let mut map = HashMap::new();
   let result = node.get_json_field("payload", &inputs).unwrap();
   let status = node.get_number_field("status", &inputs).unwrap();
@@ -127,26 +119,28 @@ pub fn output(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
-// pub fn scripter(node: Node, inputs: InputData) -> OutputData {
-
-// }
+pub fn script(node: Node, inputs: InputData) -> OutputData {
+  let _src = node.get_string_field("src", &inputs).unwrap();
+  let payload = node.get_json_field("payload", &inputs).unwrap();
+  let src = format!("function main(payload) {{ {} }}", _src);
+  let mut script = Script::from_string(&src).expect("js init failed");
+  let result: Value = script.call("main", &payload).expect("js call failed");
+  let mut map = HashMap::new();
+  map.insert("payload".to_string(), iodata!(result));
+  Rc::new(map)
+}
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
-    println!("mongodb node running");
     let dbname = node.get_string_field("dbname", &inputs).unwrap();
     let colname = node.get_string_field("colname", &inputs).unwrap();
-    dbg!(&dbname, &colname);
     let squery = node.get_string_field("query", &inputs).unwrap();
     let limit = node.get_number_field("limit", &inputs).unwrap_or(10);
 
     let db = conn.database(&dbname);
     let coll = db.collection(&colname);
 
-    println!("{}", &squery);
-
     let pquery = query::parse::from_str(&squery);
-    dbg!(&pquery);
     let query = mongo::to_bson(query!(..pquery && "deleted" == false));
 
     let options = FindOptions::builder()
@@ -158,11 +152,9 @@ pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputDat
       Ok(cursor) => {
         let vec: Vec<Value> = to_vec!(cursor);
         let result = serde_json::to_value(vec).unwrap();
-        dbg!("mongodb", &result);
         map.insert("json".to_string(), iodata!(result));
       },
-      Err(e) => {
-        dbg!(e);
+      Err(_) => {
         map.insert("json".to_string(), iodata!(json!({"error": "database error"})));
       }
     };
