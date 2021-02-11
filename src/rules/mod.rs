@@ -132,6 +132,7 @@ pub fn test_rule(data: Json<Value>, apikey: ApiKey, conn: State<Client>) -> Resu
     let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
 
     let output = engine.process(&nodes, start_node).unwrap();
+    dbg!("output", &output);
     let payload = output["payload"].get::<Value>().unwrap();
     let status = output["status"].get::<i64>().unwrap();
     Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))

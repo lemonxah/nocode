@@ -79,6 +79,7 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
 }
 
 pub fn template(node: Node, inputs: InputData) -> OutputData {
+  println!("template node running");
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
   let reg = Handlebars::new();
@@ -91,6 +92,7 @@ pub fn template(node: Node, inputs: InputData) -> OutputData {
 }
 
 pub fn template_json(node: Node, inputs: InputData) -> OutputData {
+  println!("template json node running");
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
   let reg = Handlebars::new();
@@ -111,6 +113,7 @@ pub fn input(payload: Value) -> Box<dyn Fn(Node, InputData) -> OutputData> {
 }
 
 pub fn output(node: Node, inputs: InputData) -> OutputData {
+  println!("output node running");
   let mut map = HashMap::new();
   let result = node.get_json_field("payload", &inputs).unwrap();
   let status = node.get_number_field("status", &inputs).unwrap();
@@ -125,6 +128,7 @@ pub fn output(node: Node, inputs: InputData) -> OutputData {
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
+    println!("mongodb node running");
     let dbname = node.get_string_field("db", &inputs).unwrap();
     let colname = node.get_string_field("col", &inputs).unwrap();
 
@@ -145,10 +149,12 @@ pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputDat
       Ok(cursor) => {
         let vec: Vec<Value> = to_vec!(cursor);
         let result = serde_json::to_value(vec).unwrap();
+        dbg!("mongodb", &result);
         map.insert("json".to_string(), iodata!(result));
       },
-      Err(_) => {
-        map.insert("json".to_string(), iodata!(""));
+      Err(e) => {
+        dbg!(e);
+        map.insert("json".to_string(), iodata!(json!({"error": "database error"})));
       }
     };
     Rc::new(map)

@@ -159,7 +159,7 @@
     "aws_service_routes": [
       {
         "dev": {
-          "healthcheck": "/v1/rulesservice/healthcheck",
+          "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"
@@ -170,7 +170,7 @@
           ]
         },
         "stg": {
-          "healthcheck": "/v1/rulesservice/healthcheck",
+          "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"
@@ -181,7 +181,7 @@
           ]
         },
         "prd": {
-          "healthcheck": "/v1/rulesservice/healthcheck",
+          "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
               "*.wealthmigrate.com": "/v1/rules"

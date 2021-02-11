@@ -54,7 +54,7 @@ impl From<mongodb::error::Error> for MainError {
   }
 }
 
-#[get("/rulesservice/healthcheck")]
+#[get("/ruletest/healthcheck")]
 fn healthcheck() -> Status {
   Status::Ok
 }
