@@ -9,7 +9,7 @@ limits = { forms = 32768 }
 
 [development]
 address = "0.0.0.0"
-port = 8081
+port = 8080
 workers = 8
 keep_alive = 5
 log = "normal"
