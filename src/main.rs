@@ -23,11 +23,14 @@ extern crate js_sandbox;
 mod apikey;
 mod rules;
 
+use rocket::response::NamedFile;
 use rocket::http::Status;
 use rocket_cors::{CorsOptions, Cors};
 use mongodb::{sync::Client, options::ClientOptions};
 
 use std::env;
+use std::io;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 enum MainError {
@@ -59,6 +62,26 @@ fn healthcheck() -> Status {
   Status::Ok
 }
 
+#[get("/")]
+fn index() -> io::Result<NamedFile> {
+    NamedFile::open("./dist/index.html")
+}
+
+#[get("/js/<file..>")]
+fn js_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/js/").join(file)).ok()
+}
+
+#[get("/css/<file..>")]
+fn css_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/css/").join(file)).ok()
+}
+
+#[get("/img/<file..>")]
+fn img_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/img/").join(file)).ok()
+}
+
 #[tokio::main]
 async fn main() -> std::result::Result<(), MainError> {
 
@@ -78,6 +101,12 @@ async fn main() -> std::result::Result<(), MainError> {
   }.to_cors()?;
 
   rocket::ignite()
+    .mount("/", routes![
+      index,
+      js_files,
+      css_files,
+      img_files,
+    ])
     .mount("/v1", routes![
       healthcheck,
       rules::save_rule,
