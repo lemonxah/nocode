@@ -18,7 +18,12 @@ FROM rust:1.49.0 as builder
 RUN rustup default nightly-2021-01-01
 COPY Cargo.toml .
 COPY Rocket.toml .
+COPY dummy.rs .
 RUN cargo fetch # this should download dependencies
+RUN sed -i 's#src/main.rs#dummy.rs#' Cargo.toml
+RUN cargo build --release
+RUN sed -i 's#dummy.rs#src/main.rs#' Cargo.toml
+
 COPY src/ ./src/
 
 RUN ["cargo", "build", "--release", "-Z", "unstable-options", "--out-dir", "output"]
