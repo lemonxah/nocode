@@ -21,7 +21,7 @@ COPY Rocket.toml .
 RUN cargo fetch # this should download dependencies
 COPY src/ ./src/
 
-RUN ["cargo", "build", "-Z", "unstable-options", "--out-dir", "output"]
+RUN ["cargo", "build", "--release", "-Z", "unstable-options", "--out-dir", "output"]
 
 FROM ubuntu
 RUN apt-get update  && apt-get upgrade -y &&  apt-get install openssl -y
