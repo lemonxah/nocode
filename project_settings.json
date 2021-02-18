@@ -4,7 +4,25 @@
     "build_with": [
       {
         "tool": "docker",
-        "build_args": [],
+        "build_args": [
+          {
+            "dev": [
+              {
+                "API_URL": "https://dev.api.wealthmigrate.com"
+              }
+            ],
+            "stg": [
+              {
+                "API_URL": "https://stg.api.wealthmigrate.com"
+              }
+            ],
+            "prd": [
+              {
+                "API_URL": "https://prd.api.wealthmigrate.com"
+              }
+            ]
+          }
+        ],
         "docker_file_path": "."
       }
     ],

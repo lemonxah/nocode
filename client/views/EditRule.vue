@@ -197,7 +197,7 @@ export default {
       // console.log(this.editor.toJSON())
     });
     try {
-      const api = `http://localhost:3000/v1/rules/${this.$route.params.rule_name}`;
+      const api = `${process.env.apiUrl}/v1/rules/${this.$route.params.rule_name}`;
       const res = await this.axios.get(api, {
         headers: {
           Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJsZW1vbiIsImlhdCI6MTU3OTUxOTQ4Nzk1OSwianRpIjoiMDZhZTc3MTYtMDNmOC00NTRmLWE5MDAtMmIxM2M0ODUxMTRhIiwic3ViIjoibGVtb24iLCJsZWdhY3kiOmZhbHNlLCJwYXJ0bmVycyI6bnVsbCwiZW1haWwiOm51bGwsInNjb3BlcyI6W3sic2NvcGUiOiJhbGwiLCJhY3Rpb25zIjpbImFsbCJdfV0sImVudGl0aWVzIjpbXSwiZXhwIjpudWxsLCJlc3RzIjp0cnVlfQ.cmTLgx-b8ycpOYjwMeoD_f0KkCFgvToMqvIT7HAiQ5I',
@@ -222,7 +222,7 @@ export default {
     },
     async onRuleSave() {
       try {
-        const api = 'http://localhost:3000/v1/rules';
+        const api = `${process.env.apiUrl}/v1/rules`;
         const res = await this.axios.post(api, {
           name: this.$route.params.rule_name,
           payload: this.payload,
@@ -239,7 +239,7 @@ export default {
     },
     async onRuleTest() {
       try {
-        const api = 'http://localhost:3000/v1/ruletest';
+        const api = `${process.env.apiUrl}/v1/ruletest`;
         const res = await this.axios.post(api, {
           payload: this.payload,
           rule: this.editor.toJSON(),

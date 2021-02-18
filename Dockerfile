@@ -25,6 +25,11 @@ RUN ["cargo", "build", "-Z", "unstable-options", "--out-dir", "output"]
 
 FROM ubuntu
 RUN apt-get update  && apt-get upgrade -y &&  apt-get install openssl -y
+
+COPY --from=node_builder \
+    dist \
+    /dist
+
 COPY --from=builder \
     output/rules \
     /
