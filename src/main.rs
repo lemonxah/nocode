@@ -95,7 +95,7 @@ async fn main() -> std::result::Result<(), MainError> {
     Err(_) => "mongodb://localhost:27017".to_owned(),
   };
   
-  let mut client_options = ClientOptions::parse(&conn_string).await?;
+  let mut client_options = ClientOptions::parse(&conn_string)?;
 
   client_options.app_name = Some("rules".to_string());
   let client = Client::with_options(client_options)?;
@@ -113,7 +113,6 @@ async fn main() -> std::result::Result<(), MainError> {
       rules::get_rule,
       rules::run_rule,
       rules::test_rule,
-
       index,
       edit,
       js_files,

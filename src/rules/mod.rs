@@ -126,7 +126,7 @@ pub fn run_rule(name: String, data: Json<JsonValue>, apikey: ApiKey, conn: State
           Ok(status::Custom(Status::NotFound, json!({}).into()))
         }
       },
-      Err(e) => {
+      Err(_) => {
         Ok(status::Custom(Status::InternalServerError, json!({}).into()))
       }
     }
@@ -157,7 +157,7 @@ pub fn get_rule(name: String, apikey: ApiKey, conn: State<Client>) -> Result<sta
           Ok(status::Custom(Status::Ok, json!({}).into()))
         }
       },
-      Err(e) => {
+      Err(_) => {
         Ok(status::Custom(Status::InternalServerError, json!({}).into()))
       }
     }

@@ -8,17 +8,17 @@
           {
             "dev": [
               {
-                "API_URL": "https://dev.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://dev.api.wealthmigrate.com"
               }
             ],
             "stg": [
               {
-                "API_URL": "https://stg.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://stg.api.wealthmigrate.com"
               }
             ],
             "prd": [
               {
-                "API_URL": "https://prd.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://prd.api.wealthmigrate.com"
               }
             ]
           }
@@ -184,6 +184,9 @@
             },
             {
               "*.wealthmigrate.com": "/v1/ruletest"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruleview"
             }
           ]
         },
@@ -195,6 +198,9 @@
             },
             {
               "*.wealthmigrate.com": "/v1/ruletest"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruleview"
             }
           ]
         },
@@ -206,6 +212,9 @@
             },
             {
               "*.wealthmigrate.com": "/v1/ruletest"
+            },
+            {
+              "*.wealthmigrate.com": "/v1/ruleview"
             }
           ]
         }
