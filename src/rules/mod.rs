@@ -1,5 +1,11 @@
 pub mod nodes;
 
+use serde_json::Map;
+use bson::Document;
+use mongodb::options::FindOneAndUpdateOptions;
+use mongodb::sync::Collection;
+use std::convert::TryFrom;
+use mongodb::options::FindOptions;
 use serde_json::Value;
 use std::rc::Rc;
 use std::convert::TryInto;
@@ -10,6 +16,8 @@ use rocket::response::status;
 use rocket::http::Status;
 use d3ne::engine::*;
 use d3ne::workers::Workers;
+
+use querylib::{mongo, query, query::*};
 
 use crate::apikey::{ApiKey, check_access};
 
@@ -87,28 +95,106 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   Engine::new(id, workers)
 }
 
-#[post("/rules/<_name>",format="application/json", data="<_data>")]
-pub fn run_rule(_name: String, _data: Json<JsonValue>, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[post("/rules/<name>",format="application/json", data="<data>")]
+pub fn run_rule(name: String, data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "run") {
-    Ok(status::Custom(Status::Ok, json!({}).into()))
+
+    let db = conn.database("rules");
+    let coll = db.collection("rules");
+    let pquery = query::parse::from_str(&format!("name == '{}'", name));
+    let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+
+    let options = FindOptions::builder()
+      .limit(1)
+      .build();
+    match coll.find(query.clone(), Some(options)) {
+      Ok(cursor) => {
+        let vec: Vec<Value> = to_vec!(cursor);
+        if vec.len() > 0 {
+          let entry = vec[0].clone();
+          let engine = setup_engine("rules@1.0.0", conn, data.0.into());
+          // let json_data: String = serde_json::to_string(&entry["rule"]).unwrap();
+          let nodes = engine.parse_value(entry["rule"].clone()).unwrap();
+          let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
+          let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
+      
+          let output = engine.process(&nodes, start_node).unwrap();
+          let payload = output["payload"].get::<Value>().unwrap();
+          let status = output["status"].get::<i64>().unwrap();
+          Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
+        } else {
+          Ok(status::Custom(Status::NotFound, json!({}).into()))
+        }
+      },
+      Err(e) => {
+        Ok(status::Custom(Status::InternalServerError, json!({}).into()))
+      }
+    }
   } else {
     Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
-#[get("/rules/<_name>")]
-pub fn get_rule(_name: String, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules/<name>")]
+pub fn get_rule(name: String, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "read") {
-    Ok(status::Custom(Status::Ok, json!({}).into()))
+    let db = conn.database("rules");
+    let coll = db.collection("rules");
+    let pquery = query::parse::from_str(&format!("name == '{}'", name));
+    let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+
+    let options = FindOptions::builder()
+      .limit(1)
+      .build();
+
+    match coll.find(query.clone(), Some(options)) {
+      Ok(cursor) => {
+        let vec: Vec<Value> = to_vec!(cursor);
+        let result = serde_json::to_value(&vec).unwrap();
+        if vec.len() > 0 {
+          Ok(status::Custom(Status::Ok, json!(result[0]).into()))
+        } else {
+          Ok(status::Custom(Status::Ok, json!({}).into()))
+        }
+      },
+      Err(e) => {
+        Ok(status::Custom(Status::InternalServerError, json!({}).into()))
+      }
+    }
   } else {
     Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
 }
 
-#[post("/rules",format="application/json", data="<_data>")]
-pub fn save_rule(_data: Json<JsonValue>, apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[post("/rules",format="application/json", data="<data>")]
+pub fn save_rule(data: Json<JsonValue>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "save") {
-    Ok(status::Custom(Status::Ok, json!({}).into()))
+    let name: String = match &data.0["name"] {
+      Value::String(n) => n.clone(),
+      _ => "_noname".to_string()
+    };
+    let db = conn.database("rules");
+    let coll: Collection = db.collection("rules");
+    let pquery = query::parse::from_str(&format!("name == '{}'", name));
+    let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+
+    let options = FindOneAndUpdateOptions::builder()
+      .upsert(true)
+      .build();
+    let payload_json: Map<String, Value> = serde_json::from_value(data.0["payload"].clone()).unwrap();
+    let payload: Document = Document::try_from(payload_json).unwrap();
+    let rule_json: Map<String, Value> = serde_json::from_value(data.0["rule"].clone()).unwrap();
+    let rule: Document = Document::try_from(rule_json).unwrap();
+    let update = doc!("$set": doc!("payload": payload, "rule": rule));
+    let res = coll.find_one_and_update(query.clone(), update, Some(options));
+    match res {
+      Ok(v) => {
+        Ok(status::Custom(Status::Ok, json!(v).into()))
+      },
+      Err(e) => {
+        Ok(status::Custom(Status::InternalServerError, json!({"error": e.to_string()}).into()))
+      }
+    }
   } else {
     Ok(status::Custom(Status::NotFound, json!({}).into()))
   }
@@ -127,8 +213,7 @@ pub fn get_rules(apikey: ApiKey, _conn: State<Client>) -> Result<status::Custom<
 pub fn test_rule(data: Json<Value>, apikey: ApiKey, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   if check_access(&apikey, "rules", "test") {
     let engine = setup_engine("rules@1.0.0", conn, data.0["payload"].clone());
-    let json_data: String = serde_json::to_string(&data.0["rule"]).unwrap();
-    let nodes = engine.parse_json(&json_data).unwrap();
+    let nodes = engine.parse_value(data.0["rule"].clone()).unwrap();
     let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
     let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
 

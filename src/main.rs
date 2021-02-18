@@ -5,7 +5,7 @@
 #[macro_use] extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
-extern crate bson;
+#[macro_use] extern crate bson;
 extern crate querylib;
 #[macro_use] extern crate serde_json;
 extern crate rocket_cors;
@@ -23,11 +23,14 @@ extern crate js_sandbox;
 mod apikey;
 mod rules;
 
+use rocket::response::NamedFile;
 use rocket::http::Status;
 use rocket_cors::{CorsOptions, Cors};
 use mongodb::{sync::Client, options::ClientOptions};
 
 use std::env;
+use std::io;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 enum MainError {
@@ -59,6 +62,31 @@ fn healthcheck() -> Status {
   Status::Ok
 }
 
+#[get("/ruleview")]
+fn index() -> io::Result<NamedFile> {
+    NamedFile::open("./dist/index.html")
+}
+
+#[get("/ruleview/edit/<_name>")]
+fn edit(_name: String) -> io::Result<NamedFile> {
+    NamedFile::open("./dist/index.html")
+}
+
+#[get("/ruleview/js/<file..>")]
+fn js_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/js/").join(file)).ok()
+}
+
+#[get("/ruleview/css/<file..>")]
+fn css_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/css/").join(file)).ok()
+}
+
+#[get("/ruleview/img/<file..>")]
+fn img_files(file: PathBuf) -> Option<NamedFile> {
+  NamedFile::open(Path::new("./dist/img/").join(file)).ok()
+}
+
 #[tokio::main]
 async fn main() -> std::result::Result<(), MainError> {
 
@@ -85,7 +113,13 @@ async fn main() -> std::result::Result<(), MainError> {
       rules::get_rule,
       rules::run_rule,
       rules::test_rule,
-    ])
+
+      index,
+      edit,
+      js_files,
+      css_files,
+      img_files,
+      ])
     .attach(cors)
     .register(catchers![
       util::unauthorized_catcher, 
