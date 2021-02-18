@@ -1,7 +1,7 @@
 FROM node:15.8.0-alpine as node_builder
-ARG API_URL
+ARG VUE_APP_API_URL
 
-ENV API_URL=${API_URL}
+ENV VUE_APP_API_URL=${VUE_APP_API_URL}
 
 # update and install dependency
 RUN apk update && apk upgrade
