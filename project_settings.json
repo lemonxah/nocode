@@ -23,7 +23,8 @@
             ]
           }
         ],
-        "docker_file_path": "."
+        "docker_file_path": ".",
+        "docker_cache": true
       }
     ],
     "aws_environment_variables": [

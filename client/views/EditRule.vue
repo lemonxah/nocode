@@ -200,9 +200,7 @@ export default {
     try {
       const api = `${process.env.VUE_APP_API_URL}/v1/rules/${this.$route.params.rule_name}`;
       const res = await this.axios.get(api, {
-        headers: {
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJsZW1vbiIsImlhdCI6MTU3OTUxOTQ4Nzk1OSwianRpIjoiMDZhZTc3MTYtMDNmOC00NTRmLWE5MDAtMmIxM2M0ODUxMTRhIiwic3ViIjoibGVtb24iLCJsZWdhY3kiOmZhbHNlLCJwYXJ0bmVycyI6bnVsbCwiZW1haWwiOm51bGwsInNjb3BlcyI6W3sic2NvcGUiOiJhbGwiLCJhY3Rpb25zIjpbImFsbCJdfV0sImVudGl0aWVzIjpbXSwiZXhwIjpudWxsLCJlc3RzIjp0cnVlfQ.cmTLgx-b8ycpOYjwMeoD_f0KkCFgvToMqvIT7HAiQ5I',
-        },
+        withCredentials: true,
       }).then((response) => {
         console.log(response);
         if (response.data?.rule) {
@@ -229,9 +227,7 @@ export default {
           payload: this.payload,
           rule: this.editor.toJSON(),
         }, {
-          headers: {
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJsZW1vbiIsImlhdCI6MTU3OTUxOTQ4Nzk1OSwianRpIjoiMDZhZTc3MTYtMDNmOC00NTRmLWE5MDAtMmIxM2M0ODUxMTRhIiwic3ViIjoibGVtb24iLCJsZWdhY3kiOmZhbHNlLCJwYXJ0bmVycyI6bnVsbCwiZW1haWwiOm51bGwsInNjb3BlcyI6W3sic2NvcGUiOiJhbGwiLCJhY3Rpb25zIjpbImFsbCJdfV0sImVudGl0aWVzIjpbXSwiZXhwIjpudWxsLCJlc3RzIjp0cnVlfQ.cmTLgx-b8ycpOYjwMeoD_f0KkCFgvToMqvIT7HAiQ5I',
-          },
+          withCredentials: true,
         });
         console.log(res);
       } catch (e) {
@@ -245,9 +241,7 @@ export default {
           payload: this.payload,
           rule: this.editor.toJSON(),
         }, {
-          headers: {
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJsZW1vbiIsImlhdCI6MTU3OTUxOTQ4Nzk1OSwianRpIjoiMDZhZTc3MTYtMDNmOC00NTRmLWE5MDAtMmIxM2M0ODUxMTRhIiwic3ViIjoibGVtb24iLCJsZWdhY3kiOmZhbHNlLCJwYXJ0bmVycyI6bnVsbCwiZW1haWwiOm51bGwsInNjb3BlcyI6W3sic2NvcGUiOiJhbGwiLCJhY3Rpb25zIjpbImFsbCJdfV0sImVudGl0aWVzIjpbXSwiZXhwIjpudWxsLCJlc3RzIjp0cnVlfQ.cmTLgx-b8ycpOYjwMeoD_f0KkCFgvToMqvIT7HAiQ5I',
-          },
+          withCredentials: true,
         });
         this.output = res.data;
       } catch (e) {
