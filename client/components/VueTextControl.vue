@@ -1,5 +1,5 @@
 <template>
-  <input type="text" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop />
+  <input type="text" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop @pointermove.stop />
 </template>
 <script>
 export default {

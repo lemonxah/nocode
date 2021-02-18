@@ -5,7 +5,7 @@
 #[macro_use] extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
-extern crate bson;
+#[macro_use] extern crate bson;
 extern crate querylib;
 #[macro_use] extern crate serde_json;
 extern crate rocket_cors;
@@ -62,22 +62,27 @@ fn healthcheck() -> Status {
   Status::Ok
 }
 
-#[get("/")]
+#[get("/ruleview")]
 fn index() -> io::Result<NamedFile> {
     NamedFile::open("./dist/index.html")
 }
 
-#[get("/js/<file..>")]
+#[get("/ruleview/edit/<_name>")]
+fn edit(_name: String) -> io::Result<NamedFile> {
+    NamedFile::open("./dist/index.html")
+}
+
+#[get("/ruleview/js/<file..>")]
 fn js_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/js/").join(file)).ok()
 }
 
-#[get("/css/<file..>")]
+#[get("/ruleview/css/<file..>")]
 fn css_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/css/").join(file)).ok()
 }
 
-#[get("/img/<file..>")]
+#[get("/ruleview/img/<file..>")]
 fn img_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/img/").join(file)).ok()
 }
@@ -101,12 +106,6 @@ async fn main() -> std::result::Result<(), MainError> {
   }.to_cors()?;
 
   rocket::ignite()
-    .mount("/", routes![
-      index,
-      js_files,
-      css_files,
-      img_files,
-    ])
     .mount("/v1", routes![
       healthcheck,
       rules::save_rule,
@@ -114,7 +113,13 @@ async fn main() -> std::result::Result<(), MainError> {
       rules::get_rule,
       rules::run_rule,
       rules::test_rule,
-    ])
+
+      index,
+      edit,
+      js_files,
+      css_files,
+      img_files,
+      ])
     .attach(cors)
     .register(catchers![
       util::unauthorized_catcher, 

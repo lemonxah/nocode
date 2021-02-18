@@ -1,5 +1,5 @@
 <template>
-  <textarea class="tainp" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop />
+  <textarea class="tainp" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop @pointermove.stop />
 </template>
 <script>
 export default {

@@ -10,9 +10,9 @@ use handlebars::Handlebars;
 use d3ne::node::*;
 use querylib::{mongo, query, query::*};
 
-pub fn number(node: Node, _inputs: InputData) -> OutputData {
+pub fn number(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let result = node.data["num"].to_string().parse::<i64>().unwrap();
+  let result = node.get_number_field("num", &inputs).unwrap();
   map.insert("num".to_string(), iodata!(result));
   Rc::new(map)
 }

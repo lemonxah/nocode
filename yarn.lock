@@ -1852,6 +1852,13 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
+  dependencies:
+    follow-redirects "^1.10.0"
+
 babel-eslint@^10.1.0:
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-10.1.0.tgz#6968e568a910b78fb3779cdd8b6ac2f479943232"
@@ -4042,7 +4049,7 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
 
-follow-redirects@^1.0.0:
+follow-redirects@^1.0.0, follow-redirects@^1.10.0:
   version "1.13.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.2.tgz#dd73c8effc12728ba5cf4259d760ea5fb83e3147"
   integrity sha512-6mPTgLxYm3r6Bkkg0vNM0HTjfGrOEtsfbhagQvbxDEsEkpNhw582upBaoRZylzen6krEmxXJgt9Ju6HiI4O7BA==
@@ -7297,6 +7304,16 @@ rete-area-plugin@^0.2.1:
   resolved "https://registry.yarnpkg.com/rete-area-plugin/-/rete-area-plugin-0.2.1.tgz#0afe4581baf99c36c904d08e4f0a835ed6604d86"
   integrity sha512-MOeQRmSC/gjkZIMo0fNuomzunRplALqd86V+jSzuhBYchCw0wshv2/iXu4xRxVZkw9r1HpZxlz9gLkbatCbXMw==
 
+rete-auto-arrange-plugin@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/rete-auto-arrange-plugin/-/rete-auto-arrange-plugin-0.4.0.tgz#abdff5441c2159a4140ed4be166a307478feda08"
+  integrity sha512-s+JA1Xe8KaKGj9ozm0Er2gb6b5SfDOo6jtkBY4UMrt6imBkrwGwliwTUx9LG6zzkSlCUlFVcHNY1NBNJmPCQxQ==
+
+rete-connection-mastery-plugin@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/rete-connection-mastery-plugin/-/rete-connection-mastery-plugin-0.2.4.tgz#2a669ac8fdfbdf7a3d715920dbed23b4567c57a2"
+  integrity sha512-CliFRACU7kWNOCjvHvDedEEliWX48INxvvln5azQ48mPIr+bLHCCWrvyoG0iH62M1ik+W0f0xnCFXg/rbtm7vQ==
+
 rete-connection-plugin@^0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/rete-connection-plugin/-/rete-connection-plugin-0.9.0.tgz#3a6df36f55493a5c2ea021ae3147a0f0a6ada6ed"
@@ -7308,6 +7325,13 @@ rete-context-menu-plugin@^0.6.0-rc.1:
   integrity sha512-pjDaLfg50lvwbEInciX2OOvVgmoerF5tYYhYlEjcJq0KYfhLAzhmRnPJc1Ymgd1SJZf26G4YnQjSepCEzTiaUA==
   dependencies:
     lodash-es "^4.17.15"
+    vue "^2.5.17"
+
+rete-minimap-plugin@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/rete-minimap-plugin/-/rete-minimap-plugin-0.3.1.tgz#5c0f8b8bdde8baa819f3f35c0446e4ebf0399071"
+  integrity sha512-B89MwDxz0NBngE9bkf0F9jI++Jn/wsOZll88Xoa7snbBAdziVgmHikroSjiMAWlzwSNmHk7Mzo8DmezsAz46Jg==
+  dependencies:
     vue "^2.5.17"
 
 rete-vue-render-plugin@^0.5.0:
@@ -8561,6 +8585,11 @@ vm-browserify@^1.0.1:
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
 
+vue-axios@^3.2.4:
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/vue-axios/-/vue-axios-3.2.4.tgz#2334158db8ac2a0f603aa431c2626fbf6d766724"
+  integrity sha512-8Dgws6dwt+1LoKEU4HDzIPfaRgWHl0xLDLW6kxrAk/z3GAJ2thkajcXC4qZgmqj0cZRx/Z/dzooKi5HWtUQwxA==
+
 vue-eslint-parser@^7.0.0:
   version "7.5.0"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-7.5.0.tgz#b68221c55fee061899afcfb4441ec74c1495285e"
@@ -8604,6 +8633,11 @@ vue-loader@^15.9.2:
     loader-utils "^1.1.0"
     vue-hot-reload-api "^2.3.0"
     vue-style-loader "^4.1.0"
+
+vue-router@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.5.1.tgz#edf3cf4907952d1e0583e079237220c5ff6eb6c9"
+  integrity sha512-RRQNLT8Mzr8z7eL4p7BtKvRaTSGdCbTy2+Mm5HTJvLGYSSeG9gDzNasJPP/yOYKLy+/cLG/ftrqq5fvkFwBJEw==
 
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
   version "4.1.2"
