@@ -42,7 +42,7 @@ pub fn multiply(node: Node, inputs: InputData) -> OutputData {
 
 pub fn json_data(node: Node, _inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let result = node.data["json"].to_string().parse::<Value>().unwrap();
+  let result = node.data["json"].clone();
   map.insert("json".to_string(), iodata!(result));
   Rc::new(map)
 }
