@@ -85,6 +85,7 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Output", Box::new(nodes::output));
   workers.put("Number", Box::new(nodes::number));
   workers.put("Text", Box::new(nodes::text));
+  workers.put("JSON", Box::new(nodes::json_data));
   workers.put("Add", Box::new(nodes::add));
   workers.put("Multiply", Box::new(nodes::multiply));
   workers.put("Convert", Box::new(nodes::convert));
@@ -98,8 +99,8 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
 
 #[post("/rules/<name>",format="application/json", data="<data>")]
 pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value()).unwrap_or("");
-  match get_apikey_without_bearer(apikey_str) {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "run") {
         let db = conn.database("rules");
@@ -144,8 +145,8 @@ pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: Sta
 
 #[get("/rules/<name>")]
 pub fn get_rule(name: String, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value()).unwrap_or("");
-  match get_apikey_without_bearer(apikey_str) {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "read") {
         let db = conn.database("rules");
@@ -183,8 +184,8 @@ pub fn get_rule(name: String, cookies: Cookies, conn: State<Client>) -> Result<s
 
 #[post("/rules",format="application/json", data="<data>")]
 pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value()).unwrap_or("");
-  match get_apikey_without_bearer(apikey_str) {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "save") {
         let name: String = match &data.0["name"] {
@@ -225,8 +226,8 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
 
 #[get("/rules")]
 pub fn get_rules(cookies: Cookies, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value()).unwrap_or("");
-  match get_apikey_without_bearer(apikey_str) {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "read") {
         Ok(status::Custom(Status::Ok, json!({}).into()))
@@ -242,8 +243,8 @@ pub fn get_rules(cookies: Cookies, _conn: State<Client>) -> Result<status::Custo
 
 #[post("/ruletest",format="application/json", data="<data>")]
 pub fn test_rule(data: Json<Value>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value()).unwrap_or("");
-  match get_apikey_without_bearer(apikey_str) {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "test") {
         let engine = setup_engine("rules@1.0.0", conn, data.0["payload"].clone());

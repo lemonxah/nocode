@@ -214,6 +214,7 @@ export default {
     }
     this.editor.fromJSON(this.rule_data);
     this.editor.view.resize();
+    this.editor.on('zoom', ({ source }) => source !== 'dblclick');
   },
   methods: {
     onArrange() {
@@ -261,7 +262,7 @@ export default {
 }
 
 .content .socket.string {
-  background: #ffee8e;
+  background: #797979;
   border-color: black;
 }
 .content .socket.number {
@@ -273,7 +274,7 @@ export default {
   border-color: black;
 }
 .content .socket.json {
-  background: #ff3c00;
+  background: #363636;
   border-color: black;
 }
 .content .socket.action {
@@ -294,9 +295,41 @@ export default {
   background: #e07f00;
   border-color: #9e5a00;
 }
+#rete .node.number {
+  background: #1765ca;
+  border-color: #0f4183;
+}
 #rete .node.mongodb {
-  background: #2fbdb1;
-  border-color: #1b6d66;
+  background: #1eb600;
+  border-color: #0d4d00;
+}
+#rete .node.template {
+  background: #315855;
+  border-color: #213b39;
+}
+#rete .node.json-template {
+  background: #315855;
+  border-color: #213b39;
+}
+#rete .node.script {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.json {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.convert {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.combine {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.text {
+  background: #797979;
+  border-color: #363636;
 }
 .content .input-control input {
   width: 140px;

@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "babel-runtime": "^6.26.0",
     "core-js": "^3.6.5",
+    "prismjs": "^1.23.0",
     "rete": "^1.4.5-rc.1",
     "rete-area-plugin": "^0.2.1",
     "rete-auto-arrange-plugin": "^0.4.0",
@@ -21,6 +23,7 @@
     "vue": "^2.6.11",
     "vue-axios": "^3.2.4",
     "vue-json-editor": "^1.4.3",
+    "vue-prism-editor": "^1.2.2",
     "vue-router": "^3.5.1",
     "vuex": "^3.4.0"
   },
