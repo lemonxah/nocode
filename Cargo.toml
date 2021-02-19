@@ -26,7 +26,7 @@ js-sandbox = "0.1.5"
 
 d3ne = "0.2.5"
 funlib = "0.1.7"
-querylib = { version = "0.2.2", features = ["mongo", "parse"] }
+querylib = { version = "0.2.3", features = ["mongo", "parse"] }
 
 [[bin]]
 name = "rules"
