@@ -139,7 +139,6 @@ pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputDat
 
     let db = conn.database(&dbname);
     let coll = db.collection(&colname);
-
     let pquery = query::parse::from_str(&squery);
     let query = mongo::to_bson(query!(..pquery && "deleted" == false));
 

@@ -1,6 +1,6 @@
 pub mod nodes;
 
-use rocket::http::{Cookie, Cookies};
+use rocket::http::Cookies;
 use serde_json::Map;
 use bson::Document;
 use mongodb::options::FindOneAndUpdateOptions;
@@ -20,7 +20,7 @@ use d3ne::workers::Workers;
 
 use querylib::{mongo, query, query::*};
 
-use crate::apikey::{ApiKey, check_access, get_apikey_without_bearer};
+use crate::apikey::{check_access, get_apikey_without_bearer};
 
 #[derive(Debug, Serialize, Clone)]
 pub enum RuleError {
@@ -224,13 +224,34 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
   }
 }
 
-#[get("/rules")]
-pub fn get_rules(cookies: Cookies, _conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules?<limit>")]
+pub fn get_rules(limit: Option<i64>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
   match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "read") {
-        Ok(status::Custom(Status::Ok, json!({}).into()))
+        let db = conn.database("rules");
+        let coll = db.collection("rules");
+        let query = mongo::to_bson(query!("deleted" == false));
+    
+        let options = FindOptions::builder()
+          .limit(limit.unwrap_or(10i64))
+          .build();
+    
+        match coll.find(query.clone(), Some(options)) {
+          Ok(cursor) => {
+            let vec: Vec<Value> = to_vec!(cursor);
+            let result = serde_json::to_value(&vec).unwrap();
+            if vec.len() > 0 {
+              Ok(status::Custom(Status::Ok, json!(result).into()))
+            } else {
+              Ok(status::Custom(Status::Ok, json!({}).into()))
+            }
+          },
+          Err(_) => {
+            Ok(status::Custom(Status::InternalServerError, json!({}).into()))
+          }
+        }
       } else {
         Ok(status::Custom(Status::Unauthorized, json!({}).into()))
       }
