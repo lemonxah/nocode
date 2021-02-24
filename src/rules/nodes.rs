@@ -65,6 +65,21 @@ pub fn convert(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
+pub fn head(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  map.insert("json".to_string(), iodata!(data[0].clone()));
+  Rc::new(map)
+}
+
+pub fn nth(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  let _nth = node.get_number_field("nth", &inputs).unwrap_or(0);
+  map.insert("json".to_string(), iodata!(data[_nth as usize].clone()));
+  Rc::new(map)
+}
+
 pub fn combine(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
   let data1 = node.get_as_json_field("data1", &inputs).unwrap_or(json!({}));
@@ -130,7 +145,7 @@ pub fn script(node: Node, inputs: InputData) -> OutputData {
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
-    
+
     let dbname = node.get_string_field("dbname", &inputs).unwrap();
     let colname = node.get_string_field("colname", &inputs).unwrap();
     let squery = node.get_string_field("query", &inputs).unwrap();
