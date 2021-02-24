@@ -4,9 +4,9 @@ import VueAxios from 'vue-axios';
 import VueRouter from 'vue-router';
 import Index from '@/views/Index.vue';
 import EditRule from '@/views/EditRule.vue';
-// import store from './store';
 import '@/assets/css/tailwind.css';
 import App from '@/App.vue';
+import store from './store';
 
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
@@ -21,7 +21,7 @@ const router = new VueRouter({
 
 Vue.config.productionTip = false;
 new Vue({
-  // store,
+  store,
   router,
   template: '<App/>',
   components: { App },

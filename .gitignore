@@ -5,3 +5,4 @@
 /dist
 .env
 serve.sh
+.vscode
