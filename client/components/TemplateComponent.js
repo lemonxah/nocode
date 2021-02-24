@@ -15,8 +15,9 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
-import { txtSocket, jsonSocket } from '@/components/Sockets';
-import NameControl from '@/components/NameControl';
+import { templateSocket } from '@/components/Sockets';
+// import JsonControl from '@/components/JsonControl';
+import TemplateControl from '@/components/TemplateControl';
 
 class TemplateComponent extends Rete.Component {
   constructor() {
@@ -24,16 +25,9 @@ class TemplateComponent extends Rete.Component {
   }
 
   builder(node) {
-    const inp1 = new Rete.Input('payload', 'Json Payload ', jsonSocket);
-
-    const template = new Rete.Input('template', 'Template', txtSocket);
-    template.addControl(new NameControl(this.editor, 'template'));
-    const out = new Rete.Output('output', 'Text Output', txtSocket);
-
+    const out = new Rete.Output('template', 'Template', templateSocket);
     return node
-      .addInput(inp1)
-      .addInput(template)
-      .addOutput(out);
+      .addControl(new TemplateControl(this.editor, 'template')).addOutput(out);
   }
 
   worker(node, inputs, outputs) { }

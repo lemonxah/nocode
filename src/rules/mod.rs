@@ -90,7 +90,7 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Multiply", Box::new(nodes::multiply));
   workers.put("Convert", Box::new(nodes::convert));
   workers.put("Template", Box::new(nodes::template));
-  workers.put("JsonTemplate", Box::new(nodes::template_json));
+  workers.put("Handlebars", Box::new(nodes::handlebars));
   workers.put("Combine", Box::new(nodes::combine));
   workers.put("Script", Box::new(nodes::script));
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));

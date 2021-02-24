@@ -6,6 +6,7 @@ const scriptSocket = new Rete.Socket('Script');
 const boolSocket = new Rete.Socket('Bool');
 const actionSocket = new Rete.Socket('Action');
 const jsonSocket = new Rete.Socket('Json');
+const templateSocket = new Rete.Socket('Template');
 
 const anySocket = new Rete.Socket('ANY');
 numSocket.combineWith(anySocket);
@@ -21,4 +22,5 @@ export {
   actionSocket,
   jsonSocket,
   anySocket,
+  templateSocket,
 };

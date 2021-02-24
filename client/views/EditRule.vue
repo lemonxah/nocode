@@ -50,7 +50,7 @@ import JsonComponent from '@/components/JsonComponent';
 import InputComponent from '@/components/InputComponent';
 import OutputComponent from '@/components/OutputComponent';
 import TemplateComponent from '@/components/TemplateComponent';
-import JsonTemplateComponent from '@/components/JsonTemplateComponent';
+import HandlebarsComponent from '@/components/HandlebarsComponent';
 import JsonConvertComponent from '@/components/JsonConvertComponent';
 import JsonCombineComponent from '@/components/JsonCombineComponent';
 
@@ -172,7 +172,7 @@ export default {
           return ['Database'];
         } else if (component.name === 'Script') {
           return ['Scripting'];
-        } else if (component.name === 'JsonTemplate' || component.name === 'Template') {
+        } else if (component.name === 'Handlebars' || component.name === 'Template') {
           return ['Templates'];
         } else if (component.name === 'Contains' || component.name === 'Match') {
           return ['Control'];
@@ -190,7 +190,7 @@ export default {
       new ScriptComponent(),
       new JsonComponent(),
       new TemplateComponent(),
-      new JsonTemplateComponent(),
+      new HandlebarsComponent(),
       new JsonConvertComponent(),
       new JsonCombineComponent(),
     ];
@@ -201,8 +201,10 @@ export default {
     console.log(process.env);
     try {
       const res = await this.getRule(this.$route.params.rule_name);
-      this.rule_data = res.rule;
-      this.payload = res.payload;
+      if (res.rule) {
+        this.rule_data = res.rule;
+        this.payload = res.payload;
+      }
       console.log(res);
     } catch (e) {
       console.log(e);

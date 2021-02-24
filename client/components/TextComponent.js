@@ -15,7 +15,7 @@ no-param-reassign: [
 
 import Rete from 'rete';
 import { txtSocket } from '@/components/Sockets';
-import TextAreaControl from '@/components/TextAreaControl';
+import TextControl from '@/components/TextControl';
 
 class TextComponent extends Rete.Component {
   constructor() {
@@ -24,7 +24,7 @@ class TextComponent extends Rete.Component {
 
   builder(node) {
     const out = new Rete.Output('txt', 'Text', txtSocket);
-    return node.addControl(new TextAreaControl(this.editor, 'txt')).addOutput(out);
+    return node.addControl(new TextControl(this.editor, 'txt')).addOutput(out);
   }
 
   worker(node, inputs, outputs) {
