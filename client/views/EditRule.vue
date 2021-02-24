@@ -218,11 +218,11 @@ export default {
     },
     async onRuleSave() {
       try {
-        const res = await this.saveRule(
-          this.$route.params.rule_name,
-          this.payload,
-          this.editor.toJSON(),
-        );
+        const res = await this.saveRule({
+          name: this.$route.params.rule_name,
+          payload: this.payload,
+          rule: this.editor.toJSON(),
+        });
         console.log(res);
       } catch (e) {
         console.log(e);
@@ -233,11 +233,11 @@ export default {
         this.output = {
           processing: true,
         };
-        const res = await this.testRule(
-          this.payload,
-          this.editor.toJSON(),
-        );
-        this.output = res.data;
+        const res = await this.testRule({
+          payload: this.payload,
+          rule: this.editor.toJSON(),
+        });
+        this.output = res;
       } catch (e) {
         console.log(e);
         this.output = {

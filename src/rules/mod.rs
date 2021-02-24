@@ -268,11 +268,12 @@ pub fn test_rule(data: Json<Value>, cookies: Cookies, conn: State<Client>) -> Re
   match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "test") {
-        let engine = setup_engine("rules@1.0.0", conn, data.0["payload"].clone());
-        let nodes = engine.parse_value(data.0["rule"].clone()).unwrap();
+        let payload = data.0["payload"].clone();
+        let rule = data.0["rule"].clone();
+        let engine = setup_engine("rules@1.0.0", conn, payload);
+        let nodes = engine.parse_value(rule).unwrap();
         let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
         let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
-    
         let output = engine.process(&nodes, start_node).unwrap();
         let payload = output["payload"].get::<Value>().unwrap();
         let status = output["status"].get::<i64>().unwrap();
