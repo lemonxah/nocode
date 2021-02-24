@@ -24,6 +24,13 @@ pub fn text(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
+pub fn template(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let result = node.get_string_field("template", &inputs).unwrap();
+  map.insert("template".to_string(), iodata!(result));
+  Rc::new(map)
+}
+
 pub fn add(node: Node, inputs: InputData) -> OutputData {
   let num = node.get_number_field("num", &inputs).unwrap();
   let num2 = node.get_number_field("num2", &inputs).unwrap();
@@ -78,26 +85,17 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
-pub fn template(node: Node, inputs: InputData) -> OutputData {
+pub fn handlebars(node: Node, inputs: InputData) -> OutputData {
   let payload = node.get_json_field("payload", &inputs).unwrap();
   let template_txt = node.get_string_field("template", &inputs).unwrap();
   let reg = Handlebars::new();
   let mut map = HashMap::new();
   match reg.render_template(&template_txt, &json!({"payload": payload})) {
     Err(_) => map.insert("err".to_string(), iodata!("")),
-    Ok(output) => map.insert("output".to_string(), iodata!(output)),
-  };
-  Rc::new(map)
-}
-
-pub fn template_json(node: Node, inputs: InputData) -> OutputData {
-  let payload = node.get_json_field("payload", &inputs).unwrap();
-  let template_txt = node.get_string_field("template", &inputs).unwrap();
-  let reg = Handlebars::new();
-  let mut map = HashMap::new();
-  match reg.render_template(&template_txt, &json!({"payload": payload})) {
-    Err(_) => map.insert("err".to_string(), iodata!(json!({"error": "unable to render template"}))),
-    Ok(output) => map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&output).unwrap())),
+    Ok(output) => {
+      map.insert("output".to_string(), iodata!(output.clone()));
+      map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&output).unwrap_or(json!({}))))
+    },
   };
   Rc::new(map)
 }
@@ -132,6 +130,7 @@ pub fn script(node: Node, inputs: InputData) -> OutputData {
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
+    
     let dbname = node.get_string_field("dbname", &inputs).unwrap();
     let colname = node.get_string_field("colname", &inputs).unwrap();
     let squery = node.get_string_field("query", &inputs).unwrap();

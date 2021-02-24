@@ -1,10 +1,10 @@
 import Rete from 'rete';
-import VueTextControl from '@/components/VueTextControl.vue';
+import VueTemplateControl from '@/components/VueTemplateControl.vue';
 
-class TextControl extends Rete.Control {
+class TemplateControl extends Rete.Control {
   constructor(emitter, key, readonly) {
     super(key);
-    this.component = VueTextControl;
+    this.component = VueTemplateControl;
     this.props = { emitter, ikey: key, readonly };
   }
 
@@ -13,4 +13,4 @@ class TextControl extends Rete.Control {
   }
 }
 
-export default TextControl;
+export default TemplateControl;
