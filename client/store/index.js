@@ -54,7 +54,7 @@ export default new Vuex.Store({
       });
       return res.data;
     },
-    async saveRule({ state, dispatch }, name, payload, rule) {
+    async saveRule({ state, dispatch }, { name, payload, rule }) {
       await checkToken(state, dispatch);
       await axios.post(`${process.env.VUE_APP_API_URL}/v1/rules/`, {
         name,
@@ -64,7 +64,7 @@ export default new Vuex.Store({
         withCredentials: true,
       });
     },
-    async testRule({ state, dispatch }, payload, rule) {
+    async testRule({ state, dispatch }, { payload, rule }) {
       await checkToken(state, dispatch);
       const res = await axios.post(`${process.env.VUE_APP_API_URL}/v1/ruletest`, {
         payload,
