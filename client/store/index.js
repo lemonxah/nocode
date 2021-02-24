@@ -31,7 +31,6 @@ export default new Vuex.Store({
     async refresh({ commit }) {
       try {
         const result = await axios.get(`${process.env.VUE_APP_API_URL}/v1/users/token`, {
-          mode: 'cors',
           withCredentials: true,
         });
         // eslint-disable-next-line
@@ -44,7 +43,6 @@ export default new Vuex.Store({
     async getRule({ state, dispatch }, name) {
       await checkToken(state, dispatch);
       const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules/${name}`, {
-        mode: 'cors',
         withCredentials: true,
       });
       return res.data;
@@ -52,7 +50,6 @@ export default new Vuex.Store({
     async getRules({ state, dispatch }) {
       await checkToken(state, dispatch);
       const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules`, {
-        mode: 'cors',
         withCredentials: true,
       });
       return res.data;
@@ -64,7 +61,6 @@ export default new Vuex.Store({
         payload,
         rule,
       }, {
-        mode: 'cors',
         withCredentials: true,
       });
     },
@@ -74,7 +70,6 @@ export default new Vuex.Store({
         payload,
         rule,
       }, {
-        mode: 'cors',
         withCredentials: true,
       });
       return res.data;
