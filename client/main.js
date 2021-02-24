@@ -6,7 +6,7 @@ import Index from '@/views/Index.vue';
 import EditRule from '@/views/EditRule.vue';
 import '@/assets/css/tailwind.css';
 import App from '@/App.vue';
-import store from './store/index';
+import store from '@/store';
 
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
