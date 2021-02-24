@@ -53,6 +53,8 @@ import TemplateComponent from '@/components/TemplateComponent';
 import HandlebarsComponent from '@/components/HandlebarsComponent';
 import JsonConvertComponent from '@/components/JsonConvertComponent';
 import JsonCombineComponent from '@/components/JsonCombineComponent';
+import ArrayHeadComponent from '@/components/ArrayHeadComponent';
+import ArrayNthComponent from '@/components/ArrayNthComponent';
 
 import { mapActions } from 'vuex';
 
@@ -164,6 +166,8 @@ export default {
       allocate(component) {
         if (component.name === 'Text' || component.name === 'Number' || component.name === 'JSON') {
           return ['Variables'];
+        } else if (component.name === 'Head' || component.name === 'Nth') {
+          return ['Array'];
         } else if (component.name === 'Input' || component.name === 'Output') {
           return null;
         } else if (component.name === 'Combine' || component.name === 'JSON' || component.name === 'Convert') {
@@ -186,6 +190,8 @@ export default {
       new OutputComponent(),
       new NumComponent(),
       new TextComponent(),
+      new ArrayHeadComponent(),
+      new ArrayNthComponent(),
       new MongoDBComponent(),
       new ScriptComponent(),
       new JsonComponent(),
@@ -273,6 +279,10 @@ export default {
   background: #363636;
   border-color: black;
 }
+.content .socket.template {
+  background: #e7e302;
+  border-color: black;
+}
 .content .socket.action {
   background: white;
   border-color: grey;
@@ -300,10 +310,10 @@ export default {
   border-color: #0d4d00;
 }
 #rete .node.template {
-  background: #315855;
-  border-color: #213b39;
+  background: #363636;
+  border-color: #2d2d2d;
 }
-#rete .node.json-template {
+#rete .node.handlebars {
   background: #315855;
   border-color: #213b39;
 }

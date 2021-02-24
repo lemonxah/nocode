@@ -94,6 +94,8 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Combine", Box::new(nodes::combine));
   workers.put("Script", Box::new(nodes::script));
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
+  workers.put("Head", Box::new(nodes::head));
+  workers.put("Nth", Box::new(nodes::nth));
   Engine::new(id, workers)
 }
 
