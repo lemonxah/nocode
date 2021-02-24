@@ -54,6 +54,8 @@ import JsonTemplateComponent from '@/components/JsonTemplateComponent';
 import JsonConvertComponent from '@/components/JsonConvertComponent';
 import JsonCombineComponent from '@/components/JsonCombineComponent';
 
+import { mapActions } from 'vuex';
+
 export default {
   ssr: false,
   components: {
@@ -198,16 +200,9 @@ export default {
     });
     console.log(process.env);
     try {
-      const api = `${process.env.VUE_APP_API_URL}/v1/rules/${this.$route.params.rule_name}`;
-      const res = await this.axios.get(api, {
-        withCredentials: true,
-      }).then((response) => {
-        console.log(response);
-        if (response.data?.rule) {
-          this.rule_data = response.data.rule;
-          this.payload = response.data.payload;
-        }
-      });
+      const res = await this.getRule(this.$route.params.rule_name);
+      this.rule_data = res.rule;
+      this.payload = res.payload;
       console.log(res);
     } catch (e) {
       console.log(e);
@@ -217,19 +212,17 @@ export default {
     this.editor.on('zoom', ({ source }) => source !== 'dblclick');
   },
   methods: {
+    ...mapActions(['getRule', 'saveRule', 'testRule']),
     onArrange() {
       this.editor.trigger('arrange', { node: this.editor.nodes[0] });
     },
     async onRuleSave() {
       try {
-        const api = `${process.env.VUE_APP_API_URL}/v1/rules`;
-        const res = await this.axios.post(api, {
-          name: this.$route.params.rule_name,
-          payload: this.payload,
-          rule: this.editor.toJSON(),
-        }, {
-          withCredentials: true,
-        });
+        const res = await this.saveRule(
+          this.$route.params.rule_name,
+          this.payload,
+          this.editor.toJSON(),
+        );
         console.log(res);
       } catch (e) {
         console.log(e);
@@ -237,18 +230,19 @@ export default {
     },
     async onRuleTest() {
       try {
-        const api = `${process.env.VUE_APP_API_URL}/v1/ruletest`;
-        const res = await this.axios.post(api, {
-          payload: this.payload,
-          rule: this.editor.toJSON(),
-        }, {
-          withCredentials: true,
-        });
+        this.output = {
+          processing: true,
+        };
+        const res = await this.testRule(
+          this.payload,
+          this.editor.toJSON(),
+        );
         this.output = res.data;
       } catch (e) {
         console.log(e);
         this.output = {
-          error: 'some error occured',
+          processing: false,
+          error: e,
         };
       }
     },
