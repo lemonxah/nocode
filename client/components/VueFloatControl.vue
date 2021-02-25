@@ -1,5 +1,5 @@
 <template>
-  <input type="text" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop @pointermove.stop />
+  <input type="number" step="0.01" :readonly="readonly" :value="value" @input="change($event)" @pointerdown.stop @pointermove.stop />
 </template>
 <script>
 export default {
@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     change(e) {
-      this.value = e.target.value;
+      this.value = +e.target.value;
       this.update();
     },
     update() {
@@ -48,6 +48,9 @@ export default {
 };
 </script>
 <style>
+.node .control input, .node .input-control input {
+  width: 140px;
+}
 select, input {
   width: 100%;
   border-radius: 5px;
@@ -55,8 +58,6 @@ select, input {
   padding: 2px 6px;
   border: 1px solid #999;
   font-size: 110%;
-}
-.node .control input, .node .input-control input {
-  width: 180px;
+  width: 170px;
 }
 </style>

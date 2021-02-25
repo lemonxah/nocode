@@ -15,26 +15,26 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
-import { numSocket, jsonSocket } from '@/components/Sockets';
-import NumControl from '@/components/NumControl';
+import { txtSocket, jsonSocket } from '@/components/Sockets';
+import NameControl from '@/components/NameControl';
 
-class ArrayNthComponent extends Rete.Component {
+class ArrayMapComponent extends Rete.Component {
   constructor() {
-    super('Nth');
+    super('Array Map');
   }
 
   builder(node) {
     const data = new Rete.Input('payload', 'JSON Payload', jsonSocket);
-    const nth = new Rete.Input('nth', 'Nth element', numSocket);
-    nth.addControl(new NumControl(this.editor, 'nth'));
+    const ret = new Rete.Input('field', 'Field Name', txtSocket);
+    ret.addControl(new NameControl(this.editor, 'field'));
     const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
     return node
       .addInput(data)
-      .addInput(nth)
+      .addInput(ret)
       .addOutput(out);
   }
 
   worker(node, inputs, outputs) { }
 }
 
-export default ArrayNthComponent;
+export default ArrayMapComponent;
