@@ -53,7 +53,7 @@ export default {
 }
 select, textarea {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 5px;
   background-color: white;
   padding: 2px 6px;
   border: 1px solid #999;

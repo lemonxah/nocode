@@ -17,6 +17,13 @@ pub fn number(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
+pub fn float(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let result = node.get_float_number_field("float", &inputs).unwrap();
+  map.insert("float".to_string(), iodata!(result));
+  Rc::new(map)
+}
+
 pub fn text(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
   let result = node.get_string_field("txt", &inputs).unwrap();
@@ -54,7 +61,7 @@ pub fn json_data(node: Node, _inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
-pub fn convert(node: Node, inputs: InputData) -> OutputData {
+pub fn to_json(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
   let data = node.get_as_json_field("data", &inputs).unwrap();
   let new_json = match &data {
@@ -62,6 +69,75 @@ pub fn convert(node: Node, inputs: InputData) -> OutputData {
     _ => format!("{{ \"{}\" : {} }}", node.data["name"].as_str().unwrap(), serde_json::to_string(&data).unwrap())
   };
   map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&new_json).unwrap()));
+  Rc::new(map)
+}
+
+pub fn to_float(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_as_json_field("data", &inputs).unwrap();
+  let float: f64 = match &data {
+    Value::String(s) => s.parse::<f64>().unwrap_or(0f64),
+    Value::Number(n) => n.as_f64().unwrap_or(0f64),
+    Value::Bool(b) => if *b { 1f64 } else { 0f64 },
+    _ => 0f64,
+  };
+  map.insert("float".to_string(), iodata!(float));
+  Rc::new(map)
+}
+
+pub fn to_number(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_as_json_field("data", &inputs).unwrap();
+  let num: i64 = match &data {
+    Value::String(s) => s.parse::<f64>().unwrap_or(0f64) as i64,
+    Value::Number(n) => n.as_f64().unwrap_or(0f64) as i64,
+    Value::Bool(b) => if *b { 1i64 } else { 0i64 },
+    _ => 0i64,
+  };
+  map.insert("num".to_string(), iodata!(num));
+  Rc::new(map)
+}
+
+pub fn to_text(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_as_json_field("data", &inputs).unwrap();
+  let text: String = match &data {
+    Value::String(s) => s.clone(),
+    Value::Number(n) => n.as_f64().unwrap_or(0f64).to_string(),
+    Value::Bool(b) => b.to_string(),
+    _ => "".to_string(),
+  };
+  map.insert("txt".to_string(), iodata!(text));
+  Rc::new(map)
+}
+
+pub fn array_map(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  let field = node.get_string_field("field", &inputs).unwrap();
+  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+  let res: Vec<Value> = arr.into_iter().map(|v| v[&field].clone()).collect();
+  map.insert("json".to_string(), iodata!(json!(res)));
+  Rc::new(map)
+}
+
+pub fn array_sum(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  let field = node.get_string_field("field", &inputs).unwrap();
+  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+  let res: Vec<f64> = arr.into_iter().map(|v| v[&field].as_f64().unwrap_or(0f64)).collect();
+  let sum: f64 = res.into_iter().sum();
+  map.insert("float".to_string(), iodata!(sum));
+  Rc::new(map)
+}
+
+pub fn array_flatten(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  let arr: Vec<Vec<Value>> = serde_json::from_value(data).unwrap();
+  let res: Vec<Value> = arr.into_iter().flatten().collect();
+  map.insert("json".to_string(), iodata!(json!(res)));
   Rc::new(map)
 }
 
@@ -490,7 +566,7 @@ mod node_test {
     "#;
     let mut workers = Workers::new();
 
-    workers.put("Convert", Box::new(nodes::convert));
+    workers.put("Convert", Box::new(nodes::to_json));
 
     let engine = Engine::new("tests@1.0.0", workers);
     let nodes = engine.parse_json(json_data).unwrap();
@@ -581,7 +657,7 @@ mod node_test {
     "#;
     let mut workers = Workers::new();
 
-    workers.put("Convert", Box::new(nodes::convert));
+    workers.put("Convert", Box::new(nodes::to_json));
     workers.put("Template", Box::new(nodes::template));
 
     let engine = Engine::new("tests@1.0.0", workers);
@@ -701,7 +777,7 @@ mod node_test {
 
     workers.put("Number", Box::new(nodes::number));
     workers.put("Multiply", Box::new(nodes::multiply));
-    workers.put("Convert", Box::new(nodes::convert));
+    workers.put("Convert", Box::new(nodes::to_json));
     workers.put("Template", Box::new(nodes::template));
     workers.put("Output", Box::new(nodes::output));
 

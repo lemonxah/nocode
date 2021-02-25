@@ -51,10 +51,17 @@ import InputComponent from '@/components/InputComponent';
 import OutputComponent from '@/components/OutputComponent';
 import TemplateComponent from '@/components/TemplateComponent';
 import HandlebarsComponent from '@/components/HandlebarsComponent';
-import JsonConvertComponent from '@/components/JsonConvertComponent';
 import JsonCombineComponent from '@/components/JsonCombineComponent';
 import ArrayHeadComponent from '@/components/ArrayHeadComponent';
 import ArrayNthComponent from '@/components/ArrayNthComponent';
+import ArrayMapComponent from '@/components/ArrayMapComponent';
+import ArraySumComponent from '@/components/ArraySumComponent';
+import ArrayFlattenComponent from '@/components/ArrayFlattenComponent';
+import ToJsonComponent from '@/components/ToJsonComponent';
+import ToFloatComponent from '@/components/ToFloatComponent';
+import ToNumComponent from '@/components/ToNumComponent';
+import ToTextComponent from '@/components/ToTextComponent';
+import FloatComponent from '@/components/FloatComponent';
 
 import { mapActions } from 'vuex';
 
@@ -164,22 +171,22 @@ export default {
         return {};
       },
       allocate(component) {
-        if (component.name === 'Text' || component.name === 'Number' || component.name === 'JSON') {
+        if (['JSON', 'Number', 'Text', 'Combine', 'Float'].includes(component.name)) {
           return ['Variables'];
-        } else if (component.name === 'Head' || component.name === 'Nth') {
+        } else if (['Head', 'Nth', 'Array Map', 'Array Sum', 'Array Flatten'].includes(component.name)) {
           return ['Array'];
-        } else if (component.name === 'Input' || component.name === 'Output') {
-          return null;
-        } else if (component.name === 'Combine' || component.name === 'JSON' || component.name === 'Convert') {
-          return ['JSON'];
-        } else if (component.name === 'MongoDB') {
+        } else if (['ToJSON', 'ToFloat', 'ToText', 'ToNumber'].includes(component.name)) {
+          return ['Convert'];
+        } else if (['MongoDB'].includes(component.name)) {
           return ['Database'];
-        } else if (component.name === 'Script') {
+        } else if (['Script'].includes(component.name)) {
           return ['Scripting'];
-        } else if (component.name === 'Handlebars' || component.name === 'Template') {
+        } else if (['Handlebars', 'Template'].includes(component.name)) {
           return ['Templates'];
-        } else if (component.name === 'Contains' || component.name === 'Match') {
+        } else if (['Includes'].includes(component.name)) {
           return ['Control'];
+        } else if (['Input', 'Output'].includes(component.name)) {
+          return null;
         }
         return ['Other'];
       },
@@ -190,14 +197,24 @@ export default {
       new OutputComponent(),
       new NumComponent(),
       new TextComponent(),
+      new FloatComponent(),
+
+      new ToJsonComponent(),
+      new ToFloatComponent(),
+      new ToTextComponent(),
+      new ToNumComponent(),
+
       new ArrayHeadComponent(),
       new ArrayNthComponent(),
+      new ArrayMapComponent(),
+      new ArraySumComponent(),
+      new ArrayFlattenComponent(),
+
       new MongoDBComponent(),
       new ScriptComponent(),
       new JsonComponent(),
       new TemplateComponent(),
       new HandlebarsComponent(),
-      new JsonConvertComponent(),
       new JsonCombineComponent(),
     ];
     components.forEach((c) => this.editor.register(c));
@@ -271,6 +288,10 @@ export default {
   background: #3773f3;
   border-color: black;
 }
+.content .socket.float {
+  background: #32bcf3;
+  border-color: black;
+}
 .content .socket.any {
   background: #98ff78;
   border-color: black;
@@ -305,6 +326,14 @@ export default {
   background: #1765ca;
   border-color: #0f4183;
 }
+#rete .node.tonumber {
+  background: #1765ca;
+  border-color: #0f4183;
+}
+#rete .node.tofloat {
+  background: #32bcf3;
+  border-color: #207ca0;
+}
 #rete .node.mongodb {
   background: #1eb600;
   border-color: #0d4d00;
@@ -325,7 +354,19 @@ export default {
   background: #363636;
   border-color: #2d2d2d;
 }
-#rete .node.convert {
+#rete .node.array-map {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.array-flatten {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.array-sum {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.tojson {
   background: #363636;
   border-color: #2d2d2d;
 }
@@ -340,5 +381,4 @@ export default {
 .content .input-control input {
   width: 140px;
 }
-
 </style>

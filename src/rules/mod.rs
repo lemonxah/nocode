@@ -84,11 +84,15 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Input", nodes::input(payload));
   workers.put("Output", Box::new(nodes::output));
   workers.put("Number", Box::new(nodes::number));
+  workers.put("Float", Box::new(nodes::float));
   workers.put("Text", Box::new(nodes::text));
   workers.put("JSON", Box::new(nodes::json_data));
   workers.put("Add", Box::new(nodes::add));
   workers.put("Multiply", Box::new(nodes::multiply));
-  workers.put("Convert", Box::new(nodes::convert));
+  workers.put("ToJSON", Box::new(nodes::to_json));
+  workers.put("ToFloat", Box::new(nodes::to_float));
+  workers.put("ToNumber", Box::new(nodes::to_number));
+  workers.put("ToText", Box::new(nodes::to_text));
   workers.put("Template", Box::new(nodes::template));
   workers.put("Handlebars", Box::new(nodes::handlebars));
   workers.put("Combine", Box::new(nodes::combine));
@@ -96,6 +100,9 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
   workers.put("Head", Box::new(nodes::head));
   workers.put("Nth", Box::new(nodes::nth));
+  workers.put("Array Map", Box::new(nodes::array_map));
+  workers.put("Array Flatten", Box::new(nodes::array_flatten));
+  workers.put("Array Sum", Box::new(nodes::array_sum));
   Engine::new(id, workers)
 }
 

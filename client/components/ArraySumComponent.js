@@ -15,24 +15,24 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
-import { anySocket, jsonSocket } from '@/components/Sockets';
-import NameControl from '@/components/NameControl';
+import { floatSocket, txtSocket, jsonSocket } from '@/components/Sockets';
 
-class JsonConvertComponent extends Rete.Component {
+class ArraySumComponent extends Rete.Component {
   constructor() {
-    super('Convert');
+    super('Array Sum');
   }
 
   builder(node) {
-    const data = new Rete.Input('data', 'Data', anySocket);
-    const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
+    const data = new Rete.Input('payload', 'JSON Payload', jsonSocket);
+    const field = new Rete.Input('field', 'Field Name(Empty if no field)', txtSocket);
+    const out = new Rete.Output('float', 'Sum Float', floatSocket);
     return node
-      .addControl(new NameControl(this.editor, 'name'))
       .addInput(data)
+      .addInput(field)
       .addOutput(out);
   }
 
   worker(node, inputs, outputs) { }
 }
 
-export default JsonConvertComponent;
+export default ArraySumComponent;
