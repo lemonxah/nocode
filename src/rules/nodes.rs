@@ -127,7 +127,7 @@ pub fn array_map(node: Node, inputs: InputData) -> OutputData {
       };
       json!(newmap)
     } else if fields.len() == 1 {
-      v[&fields[0]].clone()
+      v[&fields[0].trim()].clone()
     } else {
       v
     }
