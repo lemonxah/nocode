@@ -120,11 +120,17 @@ pub fn array_map(node: Node, inputs: InputData) -> OutputData {
   let arr: Vec<Value> = serde_json::from_value(data).unwrap();
   let res: Vec<Value> = arr.into_iter().map(|v| {
     let mut newmap = HashMap::new();
-    for field in &fields {
-      let cfield = field.trim();
-      newmap.insert(cfield, v[cfield].clone());
-    };
-    json!(newmap)
+    if fields.len() > 1 {
+      for field in &fields {
+        let cfield = field.trim();
+        newmap.insert(cfield, v[cfield].clone());
+      };
+      json!(newmap)
+    } else if fields.len() == 1 {
+      v[&fields[0]].clone()
+    } else {
+      v
+    }
   }).collect();
   map.insert("json".to_string(), iodata!(json!(res)));
   Rc::new(map)
