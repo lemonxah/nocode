@@ -115,9 +115,17 @@ pub fn to_text(node: Node, inputs: InputData) -> OutputData {
 pub fn array_map(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
   let data = node.get_json_field("payload", &inputs).unwrap();
-  let field = node.get_string_field("field", &inputs).unwrap();
+  let fields_str = node.get_string_field("fields", &inputs).unwrap();
+  let fields: Vec<&str> = fields_str.split(',').collect();
   let arr: Vec<Value> = serde_json::from_value(data).unwrap();
-  let res: Vec<Value> = arr.into_iter().map(|v| v[&field].clone()).collect();
+  let res: Vec<Value> = arr.into_iter().map(|v| {
+    let mut newmap = HashMap::new();
+    for field in &fields {
+      let cfield = field.trim();
+      newmap.insert(cfield, v[cfield].clone());
+    };
+    json!(newmap)
+  }).collect();
   map.insert("json".to_string(), iodata!(json!(res)));
   Rc::new(map)
 }
