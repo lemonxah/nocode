@@ -68,7 +68,8 @@ pub fn to_json(node: Node, inputs: InputData) -> OutputData {
     Value::String(s) => format!("{{ \"{}\" : \"{}\" }}", node.data["name"].as_str().unwrap(), s),
     _ => format!("{{ \"{}\" : {} }}", node.data["name"].as_str().unwrap(), serde_json::to_string(&data).unwrap())
   };
-  map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&new_json).unwrap()));
+  let cleaned_json = new_json.replace("\n", "\\n");
+  map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&cleaned_json).unwrap()));
   Rc::new(map)
 }
 
@@ -178,7 +179,8 @@ pub fn combine(node: Node, inputs: InputData) -> OutputData {
 
 pub fn handlebars(node: Node, inputs: InputData) -> OutputData {
   let payload = node.get_json_field("payload", &inputs).unwrap();
-  let template_txt = node.get_string_field("template", &inputs).unwrap();
+  let template_txt = node.get_string_field("template", &inputs).unwrap_or("".to_string())
+    .replace("\n", ""); // remove new lines from templates
   let reg = Handlebars::new();
   let mut map = HashMap::new();
   match reg.render_template(&template_txt, &json!({"payload": payload})) {
@@ -578,94 +580,164 @@ mod node_test {
 
   #[test]
   fn templates() {
-    let json_data = r#"
-    {
-      "id": "tests@1.0.0",
-      "nodes": {
-        "1": {
-          "id": 1,
-          "data": {
-            "name": "age",
-            "data": 25
+    let json_data = json!(
+      {
+        "id": "tests@1.0.0",
+        "nodes": {
+          "1": {
+            "id": 1,
+            "data": {},
+            "inputs": {},
+            "outputs": {
+              "payload": {
+                "connections": [{
+                  "node": 9,
+                  "input": "payload",
+                  "data": {}
+                }]
+              }
+            },
+            "position": [244.30131347498624, 51.29823997720421],
+            "name": "Input"
           },
-          "inputs": {},
-          "outputs": {
-            "json": {
-              "connections": [{
-                "node": 2,
-                "input": "data",
-                "data": {}
-              }]
-            }
+          "2": {
+            "id": 2,
+            "data": {},
+            "inputs": {
+              "payload": {
+                "connections": [{
+                  "node": 11,
+                  "output": "json",
+                  "data": {}
+                }]
+              },
+              "status": {
+                "connections": [{
+                  "node": 3,
+                  "output": "num",
+                  "data": {}
+                }]
+              }
+            },
+            "outputs": {},
+            "position": [1207.5925421152297, 100.30867465616544],
+            "name": "Output"
           },
-          "position": [-60, 182],
-          "name": "Convert"
-        },
-        "2": {
-          "id": 2,
-          "data": {
-            "name": "wrapped",
-            "json": 35
-          },
-          "inputs": {
+          "3": {
+            "id": 3,
             "data": {
-              "connections": [{
-                "node": 1,
-                "output": "json",
-                "data": {}
-              }]
-            }
+              "num": 200
+            },
+            "inputs": {},
+            "outputs": {
+              "num": {
+                "connections": [{
+                  "node": 2,
+                  "input": "status",
+                  "data": {}
+                }]
+              }
+            },
+            "position": [954.9352854563016, 267.7901014133855],
+            "name": "Number"
           },
-          "outputs": {
-            "json": {
-              "connections": [{
-                "node": 3,
-                "input": "payload",
-                "data": {}
-              }]
-            }
+          "9": {
+            "id": 9,
+            "data": {},
+            "inputs": {
+              "payload": {
+                "connections": [{
+                  "node": 1,
+                  "output": "payload",
+                  "data": {}
+                }]
+              },
+              "template": {
+                "connections": [{
+                  "node": 10,
+                  "output": "template",
+                  "data": {}
+                }]
+              }
+            },
+            "outputs": {
+              "output": {
+                "connections": [{
+                  "node": 11,
+                  "input": "data",
+                  "data": {}
+                }]
+              },
+              "json": {
+                "connections": []
+              }
+            },
+            "position": [653.4320927081462, -16.987709513636673],
+            "name": "Handlebars"
           },
-          "position": [-60, 182],
-          "name": "Convert"
-        },
-        "3": {
-          "id": 3,
-          "data": {
-            "template": "{ \"the_age_is\": {{wrapped.age}} }"
+          "10": {
+            "id": 10,
+            "data": {
+              "template": "_id in [\n{{#each payload.array}}'{{this}}'{{#unless @last}},{{/unless}}{{/each}}\n]"
+            },
+            "inputs": {},
+            "outputs": {
+              "template": {
+                "connections": [{
+                  "node": 9,
+                  "input": "template",
+                  "data": {}
+                }]
+              }
+            },
+            "position": [8.987686923923889, 212.6419790324861],
+            "name": "Template"
           },
-          "inputs": {
-            "payload": {
-              "connections": [{
-                "node": 2,
-                "output": "json",
-                "data": {}
-              }]
-            }
-          },
-          "outputs": {
-            "json": {
-              "connections": []
-            }
-          },
-          "position": [-60, 182],
-          "name": "Template"
+          "11": {
+            "id": 11,
+            "data": {
+              "name": "query"
+            },
+            "inputs": {
+              "data": {
+                "connections": [{
+                  "node": 9,
+                  "output": "output",
+                  "data": {}
+                }]
+              }
+            },
+            "outputs": {
+              "json": {
+                "connections": [{
+                  "node": 2,
+                  "input": "payload",
+                  "data": {}
+                }]
+              }
+            },
+            "position": [908.987619506154, -8.345702171270446],
+            "name": "ToJSON"
+          }
         }
-        
-      },
-      "comments": []
-    }
-    "#;
+      }
+    );
     let mut workers = Workers::new();
 
-    workers.put("Convert", Box::new(nodes::to_json));
+    workers.put("ToJSON", Box::new(nodes::to_json));
     workers.put("Template", Box::new(nodes::template));
+    workers.put("Handlebars", Box::new(nodes::handlebars));
+    workers.put("Output", Box::new(nodes::output));
+    workers.put("Number", Box::new(nodes::number));
+    workers.put("Input", nodes::input(json!({"array":["1","2","3","4","5"]})));
+
 
     let engine = Engine::new("tests@1.0.0", workers);
-    let nodes = engine.parse_json(json_data).unwrap();
+    let nodes = engine.parse_value(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["json"].get::<Value>().unwrap();
-    assert_eq!(result, &json!({ "the_age_is": 25 }));
+    let result = oo["payload"].get::<Value>().unwrap();
+    assert_eq!(result, &json!({"query": r#"_id in ['1','2','3','4','5']"#}));
   }
 
   #[test]

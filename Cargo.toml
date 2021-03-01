@@ -21,7 +21,7 @@ sha2 = "0.9.1"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 rust-crypto = "0.2.36"
 
-handlebars = "3.5.2"
+handlebars = "3.5.3"
 js-sandbox = "0.1.5"
 
 d3ne = "0.2.7"
