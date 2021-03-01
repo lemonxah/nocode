@@ -26,7 +26,7 @@ class ArrayMapComponent extends Rete.Component {
   builder(node) {
     const data = new Rete.Input('payload', 'JSON Payload', jsonSocket);
     const ret = new Rete.Input('fields', 'Field Names (comma seperated)', txtSocket);
-    ret.addControl(new NameControl(this.editor, 'field'));
+    ret.addControl(new NameControl(this.editor, 'fields'));
     const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
     return node
       .addInput(data)
