@@ -69,7 +69,7 @@ export default {
     },
   },
   mounted() {
-    this.value = this.getData(this.ikey);
+    this.value = JSON.stringify(this.getData(this.ikey), null, 2);
   },
   methods: {
     highlighter(code) {
