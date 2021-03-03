@@ -14,8 +14,8 @@ Vue.use(VueAxios, axios);
 const router = new VueRouter({
   mode: 'history',
   routes: [
-    { path: '/v1/ruleview', component: Index },
-    { path: '/v1/ruleview/edit/:rule_name', component: EditRule },
+    { path: '/v1/ruleview', component: Index, name: 'index' },
+    { path: '/v1/ruleview/edit/:rule_name', component: EditRule, name: 'edit' },
   ],
 });
 

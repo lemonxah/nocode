@@ -277,14 +277,12 @@ export default {
     this.editor.on('process noderemoved nodecreated connectioncreated connectionremoved', () => {
       // console.log(this.editor.toJSON())
     });
-    console.log(process.env);
     try {
       const res = await this.getRule(this.$route.params.rule_name);
       if (res.rule) {
         this.rule_data = res.rule;
         this.payload = res.payload;
       }
-      console.log(res);
     } catch (e) {
       console.log(e);
     }
@@ -326,7 +324,6 @@ export default {
           payload: this.payload,
           rule: this.editor.toJSON(),
         });
-        console.log(res);
       } catch (e) {
         console.log(e);
       }
