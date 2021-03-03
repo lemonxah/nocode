@@ -23,9 +23,13 @@ class ArrayHeadComponent extends Rete.Component {
   }
 
   builder(node) {
+    // const actin = new Rete.Input('action', 'Action', actionSocket, true);
+    // const actout = new Rete.Output('action', 'Action', actionSocket);
     const data = new Rete.Input('payload', 'JSON Array', jsonSocket);
     const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
     return node
+      // .addInput(actin)
+      // .addOutput(actout)
       .addInput(data)
       .addOutput(out);
   }

@@ -11,7 +11,7 @@ rocket_codegen = "0.4.7"
 rocket_contrib = { version = "0.4.7", default-features = false, features = ["json"] }
 rocket_cors = "0.5.2"
 serde = "1.0.123"
-serde_json = "1.0.62"
+serde_json = "1.0.64"
 serde_derive = "1.0.123"
 tokio = { version = "1.2.0", features = ["full"] }
 mongodb = { version = "1.2.0", default-features = false, features = ["sync"] }
@@ -24,7 +24,7 @@ rust-crypto = "0.2.36"
 handlebars = "3.5.3"
 js-sandbox = "0.1.5"
 
-d3ne = "0.2.7"
+d3ne = "0.4.0"
 funlib = "0.1.7"
 querylib = { version = "0.3.0", features = ["mongo", "parse"] }
 

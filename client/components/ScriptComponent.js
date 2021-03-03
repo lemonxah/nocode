@@ -24,10 +24,14 @@ class ScriptComponent extends Rete.Component {
   }
 
   builder(node) {
+    // const actin = new Rete.Input('action', 'Action', actionSocket, true);
+    // const actout = new Rete.Output('action', 'Action', actionSocket);
     const inp1 = new Rete.Input('payload', 'Input', jsonSocket);
     const out = new Rete.Output('payload', 'Output', jsonSocket);
 
     return node
+      // .addInput(actin)
+      // .addOutput(actout)
       .addControl(new ScriptControl(this.editor, 'src'))
       .addInput(inp1)
       .addOutput(out);
