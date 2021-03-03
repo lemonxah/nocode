@@ -16,29 +16,26 @@ no-param-reassign: [
 
 import Rete from 'rete';
 import { numSocket, jsonSocket } from '@/components/Sockets';
-import NumControl from '@/components/NumControl';
 
-class ArrayNthComponent extends Rete.Component {
+class ArrayCountComponent extends Rete.Component {
   constructor() {
-    super('Nth');
+    super('Array Count');
   }
 
   builder(node) {
     // const actin = new Rete.Input('action', 'Action', actionSocket, true);
     // const actout = new Rete.Output('action', 'Action', actionSocket);
+
     const data = new Rete.Input('payload', 'JSON Payload', jsonSocket);
-    const nth = new Rete.Input('nth', 'Nth element', numSocket);
-    nth.addControl(new NumControl(this.editor, 'nth'));
-    const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
+    const out = new Rete.Output('num', 'Count', numSocket);
     return node
       // .addInput(actin)
       // .addOutput(actout)
       .addInput(data)
-      .addInput(nth)
       .addOutput(out);
   }
 
   worker(node, inputs, outputs) { }
 }
 
-export default ArrayNthComponent;
+export default ArrayCountComponent;

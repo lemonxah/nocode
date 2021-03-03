@@ -10,6 +10,14 @@
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleSave">
         Save
       </button>
+      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleExport">
+        <a id="downloadAnchorElem" style="display:none"></a>
+        Export
+      </button>
+      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleImport">
+        Import
+        <input type="file" id="file" ref="file" style="display:none" v-on:change="handleFileUpload()"/>
+      </button>
     </div>
     <div class="flex-col w-full content overflow-hidden">
       <div class="flex">
@@ -27,7 +35,7 @@
 
 <script>
 /* eslint
-no-unused-vars: ["error", { "args": "none", vars: "all" }]
+no-unused-vars: 0
 no-else-return: "error"
 */
 
@@ -44,24 +52,36 @@ import vueJsonEditor from 'vue-json-editor';
 
 import NumComponent from '@/components/NumComponent';
 import TextComponent from '@/components/TextComponent';
-import MongoDBComponent from '@/components/MongoDBComponent';
-import ScriptComponent from '@/components/ScriptComponent';
+import FloatComponent from '@/components/FloatComponent';
+import JsonCombineComponent from '@/components/JsonCombineComponent';
 import JsonComponent from '@/components/JsonComponent';
+
+import MongoDBGetComponent from '@/components/MongoDBGetComponent';
+import MongoDBInsertComponent from '@/components/MongoDBInsertComponent';
+import MongoDBUpdateComponent from '@/components/MongoDBUpdateComponent';
+import MongoDBReplaceComponent from '@/components/MongoDBReplaceComponent';
+
+import ScriptComponent from '@/components/ScriptComponent';
+
 import InputComponent from '@/components/InputComponent';
 import OutputComponent from '@/components/OutputComponent';
+
 import TemplateComponent from '@/components/TemplateComponent';
 import HandlebarsComponent from '@/components/HandlebarsComponent';
-import JsonCombineComponent from '@/components/JsonCombineComponent';
+
 import ArrayHeadComponent from '@/components/ArrayHeadComponent';
 import ArrayNthComponent from '@/components/ArrayNthComponent';
 import ArrayMapComponent from '@/components/ArrayMapComponent';
 import ArraySumComponent from '@/components/ArraySumComponent';
+import ArrayCountComponent from '@/components/ArrayCountComponent';
 import ArrayFlattenComponent from '@/components/ArrayFlattenComponent';
+
 import ToJsonComponent from '@/components/ToJsonComponent';
 import ToFloatComponent from '@/components/ToFloatComponent';
 import ToNumComponent from '@/components/ToNumComponent';
 import ToTextComponent from '@/components/ToTextComponent';
-import FloatComponent from '@/components/FloatComponent';
+
+import ConditionComponent from '@/components/ConditionComponent';
 
 import { mapActions } from 'vuex';
 
@@ -72,6 +92,7 @@ export default {
   },
   data() {
     return {
+      file: '',
       payload: {
         somedata: 'hello',
       },
@@ -173,12 +194,14 @@ export default {
       allocate(component) {
         if (['JSON', 'Number', 'Text', 'Combine', 'Float'].includes(component.name)) {
           return ['Variables'];
-        } else if (['Head', 'Nth', 'Array Map', 'Array Sum', 'Array Flatten'].includes(component.name)) {
+        } else if (['Head', 'Nth', 'Array Map', 'Array Sum', 'Array Flatten', 'Array Count'].includes(component.name)) {
           return ['Array'];
+        } else if (['Condition'].includes(component.name)) {
+          return ['Control'];
         } else if (['ToJSON', 'ToFloat', 'ToText', 'ToNumber'].includes(component.name)) {
           return ['Convert'];
-        } else if (['MongoDB'].includes(component.name)) {
-          return ['Database'];
+        } else if (['MongoDB Get', 'MongoDB Insert', 'MongoDB Replace', 'MongoDB Update'].includes(component.name)) {
+          return ['MongoDB'];
         } else if (['Script'].includes(component.name)) {
           return ['Scripting'];
         } else if (['Handlebars', 'Template'].includes(component.name)) {
@@ -189,6 +212,32 @@ export default {
           return null;
         }
         return ['Other'];
+      },
+      rename(component) {
+        switch (component.name) {
+          case '':
+            return '';
+          case 'Pass Through Action':
+            return 'Pass Through';
+          case 'Array Sum':
+            return 'Sum';
+          case 'Array Count':
+            return 'Count';
+          case 'Array Flatten':
+            return 'Flatten';
+          case 'Array Map':
+            return 'Map';
+          case 'MongoDB Get':
+            return 'Get';
+          case 'MongoDB Insert':
+            return 'Insert';
+          case 'MongoDB Update':
+            return 'Update';
+          case 'MongoDB Replace':
+            return 'Replace';
+          default:
+            return component.name;
+        }
       },
     });
     this.editor.trigger('process');
@@ -204,13 +253,20 @@ export default {
       new ToTextComponent(),
       new ToNumComponent(),
 
+      new ConditionComponent(),
+
       new ArrayHeadComponent(),
       new ArrayNthComponent(),
       new ArrayMapComponent(),
       new ArraySumComponent(),
       new ArrayFlattenComponent(),
+      new ArrayCountComponent(),
 
-      new MongoDBComponent(),
+      new MongoDBGetComponent(),
+      new MongoDBInsertComponent(),
+      new MongoDBUpdateComponent(),
+      new MongoDBReplaceComponent(),
+
       new ScriptComponent(),
       new JsonComponent(),
       new TemplateComponent(),
@@ -238,8 +294,30 @@ export default {
   },
   methods: {
     ...mapActions(['getRule', 'saveRule', 'testRule']),
+    handleFileUpload() {
+      const [file, ...rest] = this.$refs.file.files;
+      const reader = new FileReader();
+      reader.readAsText(file, 'UTF-8');
+      reader.onload = (evt) => {
+        const data = JSON.parse(evt.target.result);
+        this.payload = data?.payload;
+        this.rule_data = data?.rule;
+        this.editor.fromJSON(this.rule_data);
+      };
+    },
     onArrange() {
       this.editor.trigger('arrange', { node: this.editor.nodes[0] });
+    },
+    onRuleImport() {
+      const fileupload = document.getElementById('file');
+      fileupload.click();
+    },
+    onRuleExport() {
+      const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify({ payload: this.payload, rule: this.editor.toJSON() }, null, 2))}`;
+      const dlAnchorElem = document.getElementById('downloadAnchorElem');
+      dlAnchorElem.setAttribute('href', dataStr);
+      dlAnchorElem.setAttribute('download', `${this.$route.params.rule_name}.json`);
+      dlAnchorElem.click();
     },
     async onRuleSave() {
       try {
@@ -279,7 +357,6 @@ export default {
 .content {
   height: 93%;
 }
-
 .content .socket.string {
   background: #797979;
   border-color: black;
@@ -334,7 +411,19 @@ export default {
   background: #32bcf3;
   border-color: #207ca0;
 }
-#rete .node.mongodb {
+#rete .node.mongodb-get {
+  background: #1eb600;
+  border-color: #0d4d00;
+}
+#rete .node.mongodb-insert {
+  background: #1eb600;
+  border-color: #0d4d00;
+}
+#rete .node.mongodb-update {
+  background: #1eb600;
+  border-color: #0d4d00;
+}
+#rete .node.mongodb-replace {
   background: #1eb600;
   border-color: #0d4d00;
 }
@@ -363,6 +452,10 @@ export default {
   border-color: #2d2d2d;
 }
 #rete .node.array-sum {
+  background: #363636;
+  border-color: #2d2d2d;
+}
+#rete .node.array-count {
   background: #363636;
   border-color: #2d2d2d;
 }

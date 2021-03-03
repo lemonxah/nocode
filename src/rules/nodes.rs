@@ -147,6 +147,15 @@ pub fn array_sum(node: Node, inputs: InputData) -> OutputData {
   Rc::new(map)
 }
 
+pub fn array_count(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  let data = node.get_json_field("payload", &inputs).unwrap();
+  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+  let count = arr.len() as i64;
+  map.insert("num".to_string(), iodata!(count));
+  Rc::new(map)
+}
+
 pub fn array_flatten(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
   let data = node.get_json_field("payload", &inputs).unwrap();
@@ -168,6 +177,25 @@ pub fn nth(node: Node, inputs: InputData) -> OutputData {
   let data = node.get_json_field("payload", &inputs).unwrap();
   let _nth = node.get_number_field("nth", &inputs).unwrap_or(0);
   map.insert("json".to_string(), iodata!(data[_nth as usize].clone()));
+  Rc::new(map)
+}
+
+pub fn condition(node: Node, inputs: InputData) -> OutputData {
+  let cond = node.get_string_field("condition", &inputs).unwrap();
+  let left = node.get_as_json_field("left", &inputs).unwrap_or(json!({}));
+  let right = node.get_as_json_field("right", &inputs).unwrap_or(json!({}));
+  let src = format!("function main({{ left, right }}) {{ return {}; }}", cond);
+  let mut script = Script::from_string(&src).expect("js init failed");
+  let result: Value = script.call("main", &json!({ "left": left, "right": right })).expect("js call failed");
+  let mut map = HashMap::new();
+  match result {
+    Value::Bool(true) => {
+      map.insert("true".to_string(), iodata!(true));
+    },
+    _ => {
+      map.insert("false".to_string(), iodata!(false));
+    }
+  }
   Rc::new(map)
 }
 
@@ -237,16 +265,19 @@ pub fn script(node: Node, inputs: InputData) -> OutputData {
 
 pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
   Box::new(move |node: Node, inputs: InputData| {
-
-    let dbname = node.get_string_field("dbname", &inputs).unwrap();
-    let colname = node.get_string_field("colname", &inputs).unwrap();
+    let dbname = node.get_string_field("dbname", &inputs).unwrap_or("rules".to_string());
+    let colname = node.get_string_field("colname", &inputs).unwrap_or("cache".to_string());
     let squery = node.get_string_field("query", &inputs).unwrap();
     let limit = node.get_number_field("limit", &inputs).unwrap_or(10);
 
     let db = conn.database(&dbname);
     let coll = db.collection(&colname);
     let pquery = query::parse::from_str(&squery);
-    let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+    let query = if dbname == "rules" {
+      mongo::to_bson(pquery)
+    } else {
+      mongo::to_bson(query!(..pquery && "deleted" == false))
+    };
 
     let options = FindOptions::builder()
       .limit(limit)
@@ -258,6 +289,67 @@ pub fn mongodb_get(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputDat
         let vec: Vec<Value> = to_vec!(cursor);
         let result = serde_json::to_value(vec).unwrap();
         map.insert("json".to_string(), iodata!(result));
+      },
+      Err(_) => {
+        map.insert("json".to_string(), iodata!(json!({"error": "database error"})));
+      }
+    };
+    Rc::new(map)
+  })
+}
+
+fn to_bson_owned<A>(a: &A) -> bson::Document where A: serde::Serialize {
+  let b = bson::to_bson(a).unwrap();
+  let doc = b.as_document().unwrap();
+  doc.to_owned()
+}
+
+pub fn mongodb_insert(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
+  Box::new(move |node: Node, inputs: InputData| {
+    let dbname = "rules".to_string();
+    let colname = node.get_string_field("colname", &inputs).unwrap();
+    let mut payload = node.get_json_field("payload", &inputs).unwrap();
+
+    let db = conn.database(&dbname);
+    let coll = db.collection(&colname);
+
+    let mut map = HashMap::new();
+    let data = to_bson_owned(&payload);
+    match coll.insert_one(data, None) {
+      Ok(res) => {
+        let rr: Value = bson::from_bson(bson::to_bson(&res).unwrap()).unwrap();
+        payload["_id"] = rr["insertedId"].clone();
+        map.insert("json".to_string(), iodata!(payload));
+      },
+      Err(_) => {
+        map.insert("json".to_string(), iodata!(json!({"error": "database error"})));
+      }
+    };
+    Rc::new(map)
+  })
+}
+
+pub fn mongodb_replace(conn: Rc<Client>) -> Box<dyn Fn(Node, InputData) -> OutputData> { 
+  Box::new(move |node: Node, inputs: InputData| {
+    let dbname = "rules".to_string();
+    let colname = node.get_string_field("colname", &inputs).unwrap();
+    let payload = node.get_json_field("payload", &inputs).unwrap();
+    let squery = node.get_string_field("query", &inputs).unwrap();
+
+    let query = mongo::to_bson(query::parse::from_str(&squery));
+
+    let db = conn.database(&dbname);
+    let coll = db.collection(&colname);
+
+    let mut map = HashMap::new();
+    let data = to_bson_owned(&payload);
+    match coll.find_one_and_replace(query, data, None) {
+      Ok(Some(res)) => {
+        let result: Value = bson::from_bson(bson::to_bson(&res).unwrap()).unwrap();
+        map.insert("json".to_string(), iodata!(result));
+      },
+      Ok(None) => {
+        map.insert("json".to_string(), iodata!(json!({"error": "notfound"})));
       },
       Err(_) => {
         map.insert("json".to_string(), iodata!(json!({"error": "database error"})));

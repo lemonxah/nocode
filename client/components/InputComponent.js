@@ -23,9 +23,11 @@ class InputComponent extends Rete.Component {
   }
 
   builder(node) {
+    // const actout = new Rete.Output('action', 'Action', actionSocket);
     const out = new Rete.Output('payload', 'REST Payload', jsonSocket);
 
     return node
+      // .addOutput(actout)
       .addOutput(out);
   }
 

@@ -24,9 +24,13 @@ class ToJsonComponent extends Rete.Component {
   }
 
   builder(node) {
+    // const actin = new Rete.Input('action', 'Action', actionSocket, true);
+    // const actout = new Rete.Output('action', 'Action', actionSocket);
     const data = new Rete.Input('data', 'Data', anySocket);
     const out = new Rete.Output('json', 'JSON Payload', jsonSocket);
     return node
+      // .addInput(actin)
+      // .addOutput(actout)
       .addControl(new NameControl(this.editor, 'name'))
       .addInput(data)
       .addOutput(out);

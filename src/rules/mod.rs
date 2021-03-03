@@ -97,12 +97,16 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Handlebars", Box::new(nodes::handlebars));
   workers.put("Combine", Box::new(nodes::combine));
   workers.put("Script", Box::new(nodes::script));
-  workers.put("MongoDB", nodes::mongodb_get(Rc::new(conn.clone())));
+  workers.put("MongoDB Get", nodes::mongodb_get(Rc::new(conn.clone())));
+  workers.put("MongoDB Insert", nodes::mongodb_insert(Rc::new(conn.clone())));
+  workers.put("MongoDB Replace", nodes::mongodb_replace(Rc::new(conn.clone())));
   workers.put("Head", Box::new(nodes::head));
   workers.put("Nth", Box::new(nodes::nth));
   workers.put("Array Map", Box::new(nodes::array_map));
   workers.put("Array Flatten", Box::new(nodes::array_flatten));
   workers.put("Array Sum", Box::new(nodes::array_sum));
+  workers.put("Array Count", Box::new(nodes::array_count));
+  workers.put("Condition", Box::new(nodes::condition));
   Engine::new(id, workers)
 }
 

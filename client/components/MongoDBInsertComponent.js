@@ -15,24 +15,28 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
-import { txtSocket, numSocket, jsonSocket } from '@/components/Sockets';
+import { txtSocket, jsonSocket, actionSocket } from '@/components/Sockets';
 
-class MongoDBComponent extends Rete.Component {
+class MongoDBInsertComponent extends Rete.Component {
   constructor() {
-    super('MongoDB');
+    super('MongoDB Insert');
+    this.data.limit = 20;
+    this.data.query = 'deleted == false';
+    this.data.dbname = 'rules';
+    this.data.colname = 'cache';
   }
 
   builder(node) {
-    const inp1 = new Rete.Input('dbname', 'Database Name', txtSocket);
+    const actin = new Rete.Input('action', 'Action', actionSocket, true);
+    // const actout = new Rete.Output('action', 'Action', actionSocket);
     const inp2 = new Rete.Input('colname', 'Collection Name', txtSocket);
-    const inp3 = new Rete.Input('query', 'Query String', txtSocket);
-    const inp4 = new Rete.Input('limit', 'Limit', numSocket);
+    const inp4 = new Rete.Input('payload', 'JSON Payload', jsonSocket);
     const out = new Rete.Output('json', 'Query Result', jsonSocket);
 
     return node
-      .addInput(inp1)
+      .addInput(actin)
+      // .addOutput(actout)
       .addInput(inp2)
-      .addInput(inp3)
       .addInput(inp4)
       .addOutput(out);
   }
@@ -42,4 +46,4 @@ class MongoDBComponent extends Rete.Component {
   }
 }
 
-export default MongoDBComponent;
+export default MongoDBInsertComponent;
