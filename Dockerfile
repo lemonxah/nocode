@@ -14,8 +14,8 @@ RUN yarn
 # since it builds the server as well
 RUN yarn build
 
-FROM rust:1.49.0 as builder
-RUN rustup default nightly-2021-01-01
+FROM rust:1.50.0 as builder
+RUN rustup default nightly-2021-03-02
 COPY Cargo.toml .
 COPY Rocket.toml .
 COPY dummy.rs .
