@@ -140,8 +140,8 @@ pub fn set_active(name: String, data: Json<JsonValue>, cookies: Cookies, conn: S
   }
 }
 
-#[post("/rules/<name>",format="application/json", data="<data>")]
-pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[post("/rules/<name>?<rev>",format="application/json", data="<data>")]
+pub fn run_rule(name: String, rev: Option<i64>, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
   match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
@@ -159,7 +159,8 @@ pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: Sta
         
         if meta.len() > 0 {
           let active: i64 = meta[0]["active_rev"].as_i64().unwrap_or(1i64);
-          let q2 = mongo::to_bson(query!(..pquery && "rev" == active));
+          let getrev = rev.unwrap_or(active);
+          let q2 = mongo::to_bson(query!(..pquery && "rev" == getrev));
           match coll.find(q2.clone(), Some(options)) {
             Ok(cursor) => {
               let vec: Vec<Value> = to_vec!(cursor);
@@ -288,8 +289,8 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
         let _res = metacoll.find_one_and_update(query.clone(), metaupdate, meta_options);
         let res = coll.insert_one(doc!("name": name, "payload": payload, "rule": rule, "rev": nextrev), None);
         match res {
-          Ok(v) => {
-            Ok(status::Custom(Status::Ok, json!(v).into()))
+          Ok(_) => {
+            Ok(status::Custom(Status::Ok, json!({"rev": nextrev}).into()))
           },
           Err(e) => {
             Ok(status::Custom(Status::InternalServerError, json!({"error": e.to_string()}).into()))
