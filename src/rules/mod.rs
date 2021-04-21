@@ -196,34 +196,44 @@ pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: Sta
   }
 }
 
-#[get("/rules/<name>")]
-pub fn get_rule(name: String, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules/<name>?<rev>")]
+pub fn get_rule(name: String, rev: Option<i64>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
   match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
       if check_access(&apikey, "rules", "read") {
         let db = conn.database("rules");
         let coll = db.collection("rules");
+        let metacoll = db.collection("rulesmeta");
         let pquery = query::parse::from_str(&format!("name == '{}'", name));
-        let query = mongo::to_bson(pquery);
-    
+        let query = mongo::to_bson(pquery.clone());
         let options = FindOptions::builder()
           .limit(1)
           .build();
     
-        match coll.find(query.clone(), Some(options)) {
-          Ok(cursor) => {
-            let vec: Vec<Value> = to_vec!(cursor);
-            let result = serde_json::to_value(&vec).unwrap();
-            if vec.len() > 0 {
-              Ok(status::Custom(Status::Ok, json!(result[0]).into()))
-            } else {
-              Ok(status::Custom(Status::Ok, json!({}).into()))
+        let metacursor = metacoll.find(query.clone(), Some(options.clone()))?;
+        let meta: Vec<Value> = to_vec!(metacursor);
+        
+        if meta.len() > 0 {
+          let latest: i64 = meta[0]["latest_rev"].as_i64().unwrap_or(1i64);
+          let getrev: i64 = rev.unwrap_or(latest);
+          let q2 = mongo::to_bson(query!(..pquery && "rev" == getrev));
+          match coll.find(q2, Some(options)) {
+            Ok(cursor) => {
+              let vec: Vec<Value> = to_vec!(cursor);
+              let result = serde_json::to_value(&vec).unwrap();
+              if vec.len() > 0 {
+                Ok(status::Custom(Status::Ok, json!(result[0]).into()))
+              } else {
+                Ok(status::Custom(Status::Ok, json!({}).into()))
+              }
+            },
+            Err(_) => {
+              Ok(status::Custom(Status::InternalServerError, json!({}).into()))
             }
-          },
-          Err(_) => {
-            Ok(status::Custom(Status::InternalServerError, json!({}).into()))
           }
+        } else {
+          Ok(status::Custom(Status::Ok, json!({}).into()))
         }
       } else {
         Ok(status::Custom(Status::Unauthorized, json!({}).into()))
@@ -295,8 +305,8 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
   }
 }
 
-#[get("/rules?<limit>")]
-pub fn get_rules(limit: Option<i64>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+#[get("/rules?<limit>&<name>")]
+pub fn get_rules(limit: Option<i64>, name: Option<String>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
   match get_apikey_without_bearer(&apikey_str) {
     Ok(apikey) => {
@@ -305,10 +315,10 @@ pub fn get_rules(limit: Option<i64>, cookies: Cookies, conn: State<Client>) -> R
         let metacoll = db.collection("rulesmeta");
     
         let options = FindOptions::builder()
-          .limit(limit.unwrap_or(10i64))
+          .limit(limit.unwrap_or(100i64))
           .build();
-
-        match metacoll.find(doc!(), Some(options)) {
+        let query = name.map(|n| mongo::to_bson(query!("name" == n))).unwrap_or(doc!());
+        match metacoll.find(query, Some(options)) {
           Ok(cursor) => {
             let vec: Vec<Value> = to_vec!(cursor);
             let result = serde_json::to_value(&vec).unwrap();
