@@ -47,12 +47,26 @@ export default new Vuex.Store({
       });
       return res.data;
     },
+    async getRuleRev({ state, dispatch }, { name, rev }) {
+      await checkToken(state, dispatch);
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules/${name}?rev=${rev}`, {
+        withCredentials: true,
+      });
+      return res.data;
+    },
     async getRules({ state, dispatch }) {
       await checkToken(state, dispatch);
       const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules`, {
         withCredentials: true,
       });
       return res.data;
+    },
+    async getRuleMeta({ state, dispatch }, { name }) {
+      await checkToken(state, dispatch);
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules?name=${name}`, {
+        withCredentials: true,
+      });
+      return res.data?.[0];
     },
     async saveRule({ state, dispatch }, { name, payload, rule }) {
       await checkToken(state, dispatch);
