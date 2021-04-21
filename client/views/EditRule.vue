@@ -5,10 +5,17 @@
         <span class="text-white text-3xl">{{this.$route.params.rule_name}} rule</span>
       </div>
       <div class="flex-1"/>
+      <span class="text-white my-auto text-2xl">Revision:</span>
+      <select name="revisions" id="revisions" class="bg-gray-600 text-white my-auto w-14 h-10 ml-2" @change="onActiveChange($event)">
+        <option v-for="rev in revRange(rulemeta.latest_rev)" :key="rev" :selected="rev === rulemeta.latest_rev" :value="rev" class="px-4 py-2">
+          {{rev}}
+        </option>
+      </select>
+      <div class="ml-3 divider"/>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleTest">
         Test
       </button>
-      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <div class="divider"/>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleImport">
         Import
         <input type="file" id="file" ref="file" style="display:none" v-on:change="handleFileUpload()"/>
@@ -17,11 +24,11 @@
         <a id="downloadAnchorElem" style="display:none"></a>
         Export
       </button>
-      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <div class="divider"/>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleSave">
         Save
       </button>
-      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <div class="divider"/>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onJsonToggle">
         {{jsonVisible ? 'Hide Json' : 'Show Json'}}
       </button>
@@ -35,7 +42,7 @@
           <vue-json-editor v-model="output" :show-btns="false" :mode="'code'" :options="options" />
         </div>
       </div>
-      <div id="rete" class="w-full h-full overflow-hidden" />
+      <div id="rete" class="w-full h-full overflow-hidden content" />
     </div>
   </div>
 </template>
@@ -99,6 +106,7 @@ export default {
   data() {
     return {
       jsonVisible: true,
+      rulemeta: {},
       file: '',
       payload: {
         somedata: 'hello',
@@ -289,6 +297,8 @@ export default {
         this.rule_data = res.rule;
         this.payload = res.payload;
       }
+      const meta = await this.getRuleMeta({ name: this.$route.params.rule_name });
+      this.rulemeta = meta;
     } catch (e) {
       console.log(e);
     }
@@ -300,7 +310,10 @@ export default {
     // this.editor.view.resize();
   },
   methods: {
-    ...mapActions(['getRule', 'saveRule', 'testRule']),
+    ...mapActions(['getRule', 'saveRule', 'testRule', 'getRuleRev', 'getRuleMeta']),
+    revRange(max) {
+      return [...Array(max).keys()].map((i) => i + 1);
+    },
     handleFileUpload() {
       const [file, ...rest] = this.$refs.file.files;
       const reader = new FileReader();
@@ -323,6 +336,15 @@ export default {
       dlAnchorElem.setAttribute('download', `${this.$route.params.rule_name}.json`);
       dlAnchorElem.click();
     },
+    async onActiveChange(event) {
+      const rev = event.target.value;
+      const res = await this.getRuleRev({ name: this.$route.params.rule_name, rev });
+      if (res.rule) {
+        this.rule_data = res.rule;
+        this.payload = res.payload;
+        this.editor.fromJSON(this.rule_data);
+      }
+    },
     onJsonToggle() {
       this.jsonVisible = !this.jsonVisible;
     },
@@ -333,6 +355,8 @@ export default {
           payload: this.payload,
           rule: this.editor.toJSON(),
         });
+        console.log(res);
+        this.rulemeta.latest_rev = res.rev;
       } catch (e) {
         console.log(e);
       }
@@ -360,10 +384,10 @@ export default {
 </script>
 <style>
 
-.content {
-  height: 100%;
-  overflow: hidden;
+.divider {
+  @apply ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded my-auto;
 }
+
 .content .socket.string {
   background: #797979;
   border-color: black;
@@ -481,4 +505,8 @@ export default {
 .content .input-control input {
   width: 140px;
 }
+
+select { text-align-last: right; }
+option { direction: rtl; }
+
 </style>

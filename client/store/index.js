@@ -70,13 +70,14 @@ export default new Vuex.Store({
     },
     async saveRule({ state, dispatch }, { name, payload, rule }) {
       await checkToken(state, dispatch);
-      await axios.post(`${process.env.VUE_APP_API_URL}/v1/rules/`, {
+      const res = await axios.post(`${process.env.VUE_APP_API_URL}/v1/rules/`, {
         name,
         payload,
         rule,
       }, {
         withCredentials: true,
       });
+      return res.data;
     },
     async setActive({ state, dispatch }, { name, rev }) {
       await checkToken(state, dispatch);
