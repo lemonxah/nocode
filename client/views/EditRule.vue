@@ -1,34 +1,41 @@
 <template>
-  <div class="flex-col h-full">
-    <div class="w-full bg-gray-700">
-      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onArrange">
-        Arrange
-      </button>
+  <div class="flex-col h-screen overflow-hidden">
+    <div class="w-full bg-gray-700 flex">
+      <div class="py-2 px-4 ">
+        <span class="text-white text-3xl">{{this.$route.params.rule_name}} rule</span>
+      </div>
+      <div class="flex-1"/>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleTest">
         Test
       </button>
-      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleSave">
-        Save
+      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleImport">
+        Import
+        <input type="file" id="file" ref="file" style="display:none" v-on:change="handleFileUpload()"/>
       </button>
       <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleExport">
         <a id="downloadAnchorElem" style="display:none"></a>
         Export
       </button>
-      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleImport">
-        Import
-        <input type="file" id="file" ref="file" style="display:none" v-on:change="handleFileUpload()"/>
+      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onRuleSave">
+        Save
+      </button>
+      <div class="ml-1 mr-1 w-1 h-10 bg-white mt-2 rounded"/>
+      <button class="py-2 px-4 m-2 bg-blue-500 border-blue-800 text-white font-medium rounded" @click="onJsonToggle">
+        {{jsonVisible ? 'Hide Json' : 'Show Json'}}
       </button>
     </div>
-    <div class="flex-col w-full content overflow-hidden">
-      <div class="flex">
-        <div class="flex-1">
+    <div class="flex-col flex-nowrap h-full w-full overflow-hidden">
+      <div :class="[jsonVisible ? 'flex' : 'hidden']">
+        <div class="flex-1 h-full">
           <vue-json-editor v-model="payload" :show-btns="false" :mode="'code'" />
         </div>
         <div class="flex-1">
           <vue-json-editor v-model="output" :show-btns="false" :mode="'code'" :options="options" />
         </div>
       </div>
-      <div id="rete" class="w-full" />
+      <div id="rete" class="w-full h-full overflow-hidden" />
     </div>
   </div>
 </template>
@@ -44,7 +51,6 @@ import ConnectionPlugin from 'rete-connection-plugin';
 import VueRenderPlugin from 'rete-vue-render-plugin';
 import AreaPlugin from 'rete-area-plugin';
 import ContextMenuPlugin from 'rete-context-menu-plugin';
-import AutoArrangePlugin from 'rete-auto-arrange-plugin';
 import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 import MinimapPlugin from 'rete-minimap-plugin';
 
@@ -92,6 +98,7 @@ export default {
   },
   data() {
     return {
+      jsonVisible: true,
       file: '',
       payload: {
         somedata: 'hello',
@@ -177,7 +184,6 @@ export default {
       background: true,
       scaleExtent: { min: 0.2, max: 2 },
     });
-    this.editor.use(AutoArrangePlugin, { margin: { x: 50, y: 50 }, depth: 0 });
     this.editor.use(ContextMenuPlugin, {
       searchBar: false,
       searchKeep: (title) => true,
@@ -287,8 +293,11 @@ export default {
       console.log(e);
     }
     this.editor.fromJSON(this.rule_data);
-    this.editor.view.resize();
+    // this.editor.view.resize();
     this.editor.on('zoom', ({ source }) => source !== 'dblclick');
+  },
+  updated() {
+    // this.editor.view.resize();
   },
   methods: {
     ...mapActions(['getRule', 'saveRule', 'testRule']),
@@ -303,9 +312,6 @@ export default {
         this.editor.fromJSON(this.rule_data);
       };
     },
-    onArrange() {
-      this.editor.trigger('arrange', { node: this.editor.nodes[0] });
-    },
     onRuleImport() {
       const fileupload = document.getElementById('file');
       fileupload.click();
@@ -316,6 +322,9 @@ export default {
       dlAnchorElem.setAttribute('href', dataStr);
       dlAnchorElem.setAttribute('download', `${this.$route.params.rule_name}.json`);
       dlAnchorElem.click();
+    },
+    onJsonToggle() {
+      this.jsonVisible = !this.jsonVisible;
     },
     async onRuleSave() {
       try {
@@ -352,7 +361,8 @@ export default {
 <style>
 
 .content {
-  height: 93%;
+  height: 100%;
+  overflow: hidden;
 }
 .content .socket.string {
   background: #797979;

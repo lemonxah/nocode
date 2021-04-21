@@ -3,10 +3,9 @@ pub mod nodes;
 use rocket::http::Cookies;
 use serde_json::Map;
 use bson::Document;
-use mongodb::options::FindOneAndUpdateOptions;
 use mongodb::sync::Collection;
 use std::convert::TryFrom;
-use mongodb::options::FindOptions;
+use mongodb::options::{FindOptions, FindOneAndUpdateOptions};
 use serde_json::Value;
 use std::rc::Rc;
 use std::convert::TryInto;
@@ -110,6 +109,37 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   Engine::new(id, workers)
 }
 
+#[post("/rules/<name>/setactive", format="application/json", data="<data>")]
+pub fn set_active(name: String, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
+  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
+  match get_apikey_without_bearer(&apikey_str) {
+    Ok(apikey) => {
+      if check_access(&apikey, "rules", "save") {
+        let db = conn.database("rules");
+        let metacoll = db.collection("rulesmeta");
+
+        let options = FindOneAndUpdateOptions::builder()
+          .upsert(false)
+          .build();
+        let pquery = query::parse::from_str(&format!("name == '{}'", name.clone()));
+        let query = mongo::to_bson(pquery);
+        match data.0["rev"].as_i64() {
+          Some(new_active) => {
+            let _res = metacoll.find_one_and_update(query.clone(), doc!("$set": doc!("active_rev": new_active)), Some(options))?;
+            Ok(status::Custom(Status::Ok, json!({ "name": name, "new_active": new_active }).into()))
+          },
+          None => Ok(status::Custom(Status::Forbidden, json!({}).into()))
+        }
+      } else {
+        Ok(status::Custom(Status::Unauthorized, json!({}).into()))
+      }
+    },
+    Err(_) => {
+      Ok(status::Custom(Status::Unauthorized, json!({"error": "token missing or invalid"}).into()))
+    }
+  }
+}
+
 #[post("/rules/<name>",format="application/json", data="<data>")]
 pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
   let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
@@ -118,33 +148,43 @@ pub fn run_rule(name: String, data: Json<JsonValue>, cookies: Cookies, conn: Sta
       if check_access(&apikey, "rules", "run") {
         let db = conn.database("rules");
         let coll = db.collection("rules");
+        let metacoll = db.collection("rulesmeta");
         let pquery = query::parse::from_str(&format!("name == '{}'", name));
-        let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+        let query = mongo::to_bson(pquery.clone());
         let options = FindOptions::builder()
           .limit(1)
           .build();
-        match coll.find(query.clone(), Some(options)) {
-          Ok(cursor) => {
-            let vec: Vec<Value> = to_vec!(cursor);
-            if vec.len() > 0 {
-              let entry = vec[0].clone();
-              let engine = setup_engine("rules@1.0.0", conn, data.0.into());
-              // let json_data: String = serde_json::to_string(&entry["rule"]).unwrap();
-              let nodes = engine.parse_value(entry["rule"].clone()).unwrap();
-              let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
-              let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
-          
-              let output = engine.process(&nodes, start_node).unwrap();
-              let payload = output["payload"].get::<Value>().unwrap();
-              let status = output["status"].get::<i64>().unwrap();
-              Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
-            } else {
-              Ok(status::Custom(Status::NotFound, json!({}).into()))
+        let metacursor = metacoll.find(query.clone(), Some(options.clone()))?;
+        let meta: Vec<Value> = to_vec!(metacursor);
+        
+        if meta.len() > 0 {
+          let active: i64 = meta[0]["active_rev"].as_i64().unwrap_or(1i64);
+          let q2 = mongo::to_bson(query!(..pquery && "rev" == active));
+          match coll.find(q2.clone(), Some(options)) {
+            Ok(cursor) => {
+              let vec: Vec<Value> = to_vec!(cursor);
+              if vec.len() > 0 {
+                let entry = vec[0].clone();
+                let engine = setup_engine("rules@1.0.0", conn, data.0.into());
+                // let json_data: String = serde_json::to_string(&entry["rule"]).unwrap();
+                let nodes = engine.parse_value(entry["rule"].clone()).unwrap();
+                let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
+                let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
+            
+                let output = engine.process(&nodes, start_node).unwrap();
+                let payload = output["payload"].get::<Value>().unwrap();
+                let status = output["status"].get::<i64>().unwrap();
+                Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
+              } else {
+                Ok(status::Custom(Status::NotFound, json!({}).into()))
+              }
+            },
+            Err(_) => {
+              Ok(status::Custom(Status::InternalServerError, json!({}).into()))
             }
-          },
-          Err(_) => {
-            Ok(status::Custom(Status::InternalServerError, json!({}).into()))
           }
+        } else {
+          Ok(status::Custom(Status::NotFound, json!({}).into()))
         }
       } else {
         Ok(status::Custom(Status::Unauthorized, json!({}).into()))
@@ -165,7 +205,7 @@ pub fn get_rule(name: String, cookies: Cookies, conn: State<Client>) -> Result<s
         let db = conn.database("rules");
         let coll = db.collection("rules");
         let pquery = query::parse::from_str(&format!("name == '{}'", name));
-        let query = mongo::to_bson(query!(..pquery && "deleted" == false));
+        let query = mongo::to_bson(pquery);
     
         let options = FindOptions::builder()
           .limit(1)
@@ -207,18 +247,36 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
         };
         let db = conn.database("rules");
         let coll: Collection = db.collection("rules");
+        let metacoll: Collection = db.collection("rulesmeta");
         let pquery = query::parse::from_str(&format!("name == '{}'", name));
-        let query = mongo::to_bson(query!(..pquery && "deleted" == false));
-    
-        let options = FindOneAndUpdateOptions::builder()
-          .upsert(true)
-          .build();
+        let query = mongo::to_bson(pquery);
+        
         let payload_json: Map<String, Value> = serde_json::from_value(data.0["payload"].clone()).unwrap();
         let payload: Document = Document::try_from(payload_json).unwrap();
         let rule_json: Map<String, Value> = serde_json::from_value(data.0["rule"].clone()).unwrap();
         let rule: Document = Document::try_from(rule_json).unwrap();
-        let update = doc!("$set": doc!("payload": payload, "rule": rule));
-        let res = coll.find_one_and_update(query.clone(), update, Some(options));
+
+        let find_options = FindOptions::builder()
+          .sort(Some(doc!{"rev": -1}))
+          .limit(1)
+          .build();
+
+        let meta_options = FindOneAndUpdateOptions::builder()
+          .upsert(true)
+          .build();
+
+        let old_cursor = coll.find(query.clone(), Some(find_options))?;
+        let oldvec: Vec<Document> = to_vec!(old_cursor);
+        let last = oldvec.first();
+        let lastrev: i64 = last.map(|d| d.get_i64("rev").unwrap_or(0i64)).unwrap_or(0i64);
+        let nextrev = lastrev + 1;
+        let metaupdate = if nextrev == 1 {
+          doc!("$set": doc!("latest_rev": nextrev, "active_rev": nextrev))
+        } else {
+          doc!("$set": doc!("latest_rev": nextrev))
+        };
+        let _res = metacoll.find_one_and_update(query.clone(), metaupdate, meta_options);
+        let res = coll.insert_one(doc!("name": name, "payload": payload, "rule": rule, "rev": nextrev), None);
         match res {
           Ok(v) => {
             Ok(status::Custom(Status::Ok, json!(v).into()))
@@ -244,14 +302,13 @@ pub fn get_rules(limit: Option<i64>, cookies: Cookies, conn: State<Client>) -> R
     Ok(apikey) => {
       if check_access(&apikey, "rules", "read") {
         let db = conn.database("rules");
-        let coll = db.collection("rules");
-        let query = mongo::to_bson(query!("deleted" == false));
+        let metacoll = db.collection("rulesmeta");
     
         let options = FindOptions::builder()
           .limit(limit.unwrap_or(10i64))
           .build();
-    
-        match coll.find(query.clone(), Some(options)) {
+
+        match metacoll.find(doc!(), Some(options)) {
           Ok(cursor) => {
             let vec: Vec<Value> = to_vec!(cursor);
             let result = serde_json::to_value(&vec).unwrap();

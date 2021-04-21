@@ -113,6 +113,7 @@ async fn main() -> std::result::Result<(), MainError> {
       rules::get_rule,
       rules::run_rule,
       rules::test_rule,
+      rules::set_active,
       index,
       edit,
       js_files,
