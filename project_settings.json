@@ -140,7 +140,8 @@
                     "https://platform.wealthmigrate.com",
                     "https://operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com",
-                    "https://prd.api.wealthmigrate.com"
+                    "https://prd.api.wealthmigrate.com",
+                    "https://invest.worldwidecapitalpartners.com"
                   ]
                 }
               },
