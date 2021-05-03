@@ -50,8 +50,9 @@
                     "https://dev.platform.wealthmigrate.com",
                     "http://localhost:3000",
                     "https://dev.operations.wealthmigrate.com",
-                    "https://platform.privatewealthglobal.com",
-                    "https://dev.api.wealthmigrate.com"
+                    "https://dev.platform.privatewealthglobal.com",
+                    "https://dev.api.wealthmigrate.com",
+                    "https://dev.invest.rewardprop.com"
                   ]
                 }
               },
@@ -95,8 +96,9 @@
                     "https://stg.platform.wealthmigrate.com",
                     "http://localhost:3000",
                     "https://stg.operations.wealthmigrate.com",
-                    "https://platform.privatewealthglobal.com",
-                    "https://stg.api.wealthmigrate.com"
+                    "https://stg.platform.privatewealthglobal.com",
+                    "https://stg.api.wealthmigrate.com",
+                    "https://stg.invest.rewardprop.com"
                   ]
                 }
               },
@@ -141,7 +143,8 @@
                     "https://operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com",
                     "https://prd.api.wealthmigrate.com",
-                    "https://invest.worldwidecapitalpartners.com"
+                    "https://invest.worldwidecapitalpartners.com",
+                    "https://invest.rewardprop.com"
                   ]
                 }
               },
