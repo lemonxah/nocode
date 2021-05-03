@@ -96,7 +96,8 @@
                     "http://localhost:3000",
                     "https://stg.operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com",
-                    "https://stg.api.wealthmigrate.com"
+                    "https://stg.api.wealthmigrate.com",
+                    "https://invest.rewardprop.com"
                   ]
                 }
               },
@@ -141,7 +142,8 @@
                     "https://operations.wealthmigrate.com",
                     "https://platform.privatewealthglobal.com",
                     "https://prd.api.wealthmigrate.com",
-                    "https://invest.worldwidecapitalpartners.com"
+                    "https://invest.worldwidecapitalpartners.com",
+                    "https://invest.rewardprop.com"
                   ]
                 }
               },
