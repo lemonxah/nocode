@@ -14,12 +14,14 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { txtSocket } from '@/components/Sockets';
 import TextControl from '@/components/TextControl';
 
 class TextComponent extends Rete.Component {
   constructor() {
     super('Text');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

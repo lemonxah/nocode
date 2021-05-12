@@ -15,11 +15,13 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { anySocket, numSocket } from '@/components/Sockets';
 
 class ToNumComponent extends Rete.Component {
   constructor() {
     super('ToNumber');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

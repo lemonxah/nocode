@@ -15,12 +15,15 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { jsonSocket, actionSocket } from '@/components/Sockets';
 import ScriptControl from '@/components/ScriptControl';
+import NameControl from '@/components/NameControl';
 
 class ScriptComponent extends Rete.Component {
   constructor() {
     super('Script');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {
@@ -32,6 +35,7 @@ class ScriptComponent extends Rete.Component {
     return node
       .addInput(actin)
       // .addOutput(actout)
+      .addControl(new NameControl(this.editor, 'name'))
       .addControl(new ScriptControl(this.editor, 'src'))
       .addInput(inp1)
       .addOutput(out);

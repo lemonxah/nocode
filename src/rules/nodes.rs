@@ -1,14 +1,24 @@
+use js_sandbox::AnyError;
 use mongodb::options::FindOptions;
 use serde_json::Value;
 use mongodb::sync::Client;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use regex::Regex;
 use js_sandbox::Script;
 use handlebars::Handlebars;
 
 use d3ne::node::*;
 use querylib::{mongo, query, query::*};
+
+fn fix_empty_string(s: String) -> Option<String> {
+  if s == "".to_string() { None } else { Some(s) }
+}
+
+fn fix_empty_str(s: &str) -> Option<&str> {
+  if s == "".to_string() { None } else { Some(s) }
+}
 
 pub fn number(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
@@ -63,159 +73,233 @@ pub fn json_data(node: Node, _inputs: InputData) -> OutputData {
 
 pub fn to_json(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let data = node.get_as_json_field("data", &inputs).unwrap();
-  let new_json = match &data {
-    Value::String(s) => format!("{{ \"{}\" : \"{}\" }}", node.data["name"].as_str().unwrap(), s),
-    _ => format!("{{ \"{}\" : {} }}", node.data["name"].as_str().unwrap(), serde_json::to_string(&data).unwrap())
-  };
-  let cleaned_json = new_json.replace("\n", "\\n");
-  map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&cleaned_json).unwrap()));
+  let name = node.data["name"].as_str().and_then(fix_empty_str).unwrap_or("data");
+  match node.get_as_json_field("data", &inputs) {
+    Ok(data) => {
+      let new_json = match &data {
+        Value::String(s) => format!("{{ \"{}\" : \"{}\" }}", name, s),
+        _ => format!("{{ \"{}\" : {} }}", name, serde_json::to_string(&data).unwrap())
+      };
+      let cleaned_json = new_json.replace("\n", "\\n");
+      map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&cleaned_json).unwrap()));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    },
+  }
   Rc::new(map)
 }
 
 pub fn to_float(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let data = node.get_as_json_field("data", &inputs).unwrap();
-  let float: f64 = match &data {
-    Value::String(s) => s.parse::<f64>().unwrap_or(0f64),
-    Value::Number(n) => n.as_f64().unwrap_or(0f64),
-    Value::Bool(b) => if *b { 1f64 } else { 0f64 },
-    _ => 0f64,
-  };
-  map.insert("float".to_string(), iodata!(float));
-  Rc::new(map)
-}
-
-pub fn to_number(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_as_json_field("data", &inputs).unwrap();
-  let num: i64 = match &data {
-    Value::String(s) => s.parse::<f64>().unwrap_or(0f64) as i64,
-    Value::Number(n) => n.as_f64().unwrap_or(0f64) as i64,
-    Value::Bool(b) => if *b { 1i64 } else { 0i64 },
-    _ => 0i64,
-  };
-  map.insert("num".to_string(), iodata!(num));
-  Rc::new(map)
-}
-
-pub fn to_text(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_as_json_field("data", &inputs).unwrap();
-  let text: String = match &data {
-    Value::String(s) => s.clone(),
-    Value::Number(n) => n.as_f64().unwrap_or(0f64).to_string(),
-    Value::Bool(b) => b.to_string(),
-    _ => "".to_string(),
-  };
-  map.insert("txt".to_string(), iodata!(text));
-  Rc::new(map)
-}
-
-pub fn array_map(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  let fields_str = node.get_string_field("fields", &inputs).unwrap();
-  let fields: Vec<&str> = fields_str.split(',').collect();
-  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
-  let res: Vec<Value> = arr.into_iter().map(|v| {
-    let mut newmap = HashMap::new();
-    if fields.len() > 1 {
-      for field in &fields {
-        let cfield = field.trim();
-        newmap.insert(cfield, v[cfield].clone());
+  match node.get_as_json_field("data", &inputs) {
+    Ok(data) => {
+      let float: f64 = match &data {
+        Value::String(s) => s.parse::<f64>().unwrap_or(0f64),
+        Value::Number(n) => n.as_f64().unwrap_or(0f64),
+        Value::Bool(b) => if *b { 1f64 } else { 0f64 },
+        _ => 0f64,
       };
-      json!(newmap)
-    } else if fields.len() == 1 {
-      v[&fields[0].trim()].clone()
-    } else {
-      v
-    }
-  }).collect();
-  map.insert("json".to_string(), iodata!(json!(res)));
-  Rc::new(map)
-}
-
-pub fn array_sum(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  let field = node.get_string_field("field", &inputs).unwrap();
-  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
-  let res: Vec<f64> = arr.into_iter().map(|v| v[&field].as_f64().unwrap_or(0f64)).collect();
-  let sum: f64 = res.into_iter().sum();
-  map.insert("float".to_string(), iodata!(sum));
-  Rc::new(map)
-}
-
-pub fn array_count(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  let arr: Vec<Value> = serde_json::from_value(data).unwrap();
-  let count = arr.len() as i64;
-  map.insert("num".to_string(), iodata!(count));
-  Rc::new(map)
-}
-
-pub fn array_flatten(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  let arr: Vec<Vec<Value>> = serde_json::from_value(data).unwrap();
-  let res: Vec<Value> = arr.into_iter().flatten().collect();
-  map.insert("json".to_string(), iodata!(json!(res)));
-  Rc::new(map)
-}
-
-pub fn head(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  map.insert("json".to_string(), iodata!(data[0].clone()));
-  Rc::new(map)
-}
-
-pub fn nth(node: Node, inputs: InputData) -> OutputData {
-  let mut map = HashMap::new();
-  let data = node.get_json_field("payload", &inputs).unwrap();
-  let _nth = node.get_number_field("nth", &inputs).unwrap_or(0);
-  map.insert("json".to_string(), iodata!(data[_nth as usize].clone()));
-  Rc::new(map)
-}
-
-pub fn condition(node: Node, inputs: InputData) -> OutputData {
-  let cond = node.get_string_field("condition", &inputs).unwrap();
-  let left = node.get_as_json_field("left", &inputs).unwrap_or(json!({}));
-  let right = node.get_as_json_field("right", &inputs).unwrap_or(json!({}));
-  let src = format!("function main({{ left, right }}) {{ return {}; }}", cond);
-  let mut script = Script::from_string(&src).expect("js init failed");
-  let result: Value = script.call("main", &json!({ "left": left, "right": right })).expect("js call failed");
-  let mut map = HashMap::new();
-  match result {
-    Value::Bool(true) => {
-      map.insert("true".to_string(), iodata!(true));
+      map.insert("float".to_string(), iodata!(float));
     },
-    _ => {
-      map.insert("false".to_string(), iodata!(false));
+    Err(e) => {
+      map.insert("float".to_string(), Err(e));
     }
   }
   Rc::new(map)
 }
 
+pub fn to_number(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match node.get_as_json_field("data", &inputs) {
+    Ok(data) => {
+      let num: i64 = match &data {
+        Value::String(s) => s.parse::<f64>().unwrap_or(0f64) as i64,
+        Value::Number(n) => n.as_f64().unwrap_or(0f64) as i64,
+        Value::Bool(b) => if *b { 1i64 } else { 0i64 },
+        _ => 0i64,
+      };
+      map.insert("num".to_string(), iodata!(num));
+    },
+    Err(e) => {
+      map.insert("num".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+pub fn to_text(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match node.get_as_json_field("data", &inputs) {
+    Ok(data) => {
+      let text: String = match &data {
+        Value::String(s) => s.clone(),
+        Value::Number(n) => n.as_f64().unwrap_or(0f64).to_string(),
+        Value::Bool(b) => b.to_string(),
+        _ => "".to_string(),
+      };
+      map.insert("txt".to_string(), iodata!(text));
+    },
+    Err(e) => {
+      map.insert("txt".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+fn array_map_values(node: Node, inputs: InputData) -> Result<(Value, String), anyhow::Error> {
+  Ok((
+    node.get_json_field("payload", &inputs)?,
+    node.get_string_field("fields", &inputs)?
+  ))
+}
+
+pub fn array_map(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match array_map_values(node, inputs) {
+    Ok((data, fields_str)) => {
+      let fields: Vec<&str> = fields_str.split(',').collect();
+      let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+      let res: Vec<Value> = arr.into_iter().map(|v| {
+        let mut newmap = HashMap::new();
+        if fields.len() > 1 {
+          for field in &fields {
+            let cfield = field.trim();
+            newmap.insert(cfield, v[cfield].clone());
+          };
+          json!(newmap)
+        } else if fields.len() == 1 {
+          v[&fields[0].trim()].clone()
+        } else {
+          v
+        }
+      }).collect();
+      map.insert("json".to_string(), iodata!(json!(res)));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+fn array_sum_values(node: Node, inputs: InputData) -> Result<(Value, String), anyhow::Error> {
+  Ok((
+    node.get_json_field("payload", &inputs)?,
+    node.get_string_field("field", &inputs)?
+  ))
+}
+
+pub fn array_sum(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match array_sum_values(node, inputs) {
+    Ok((data, field)) => {
+      let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+      let res: Vec<f64> = arr.into_iter().map(|v| v[&field].as_f64().unwrap_or(0f64)).collect();
+      let sum: f64 = res.into_iter().sum();
+      map.insert("float".to_string(), iodata!(sum));
+    },
+    Err(e) => {
+      map.insert("float".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+pub fn array_count(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match node.get_json_field("payload", &inputs) {
+    Ok(data) => {
+      let arr: Vec<Value> = serde_json::from_value(data).unwrap();
+      let count = arr.len() as i64;
+      map.insert("num".to_string(), iodata!(count));
+    },
+    Err(e) => {
+      map.insert("num".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+pub fn array_flatten(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match node.get_json_field("payload", &inputs) {
+    Ok(data) => {
+      let arr: Vec<Vec<Value>> = serde_json::from_value(data).unwrap();
+      let res: Vec<Value> = arr.into_iter().flatten().collect();
+      map.insert("json".to_string(), iodata!(json!(res)));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+pub fn head(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match node.get_json_field("payload", &inputs) {
+    Ok(data) => {
+      map.insert("json".to_string(), iodata!(data[0].clone()));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    }
+  }
+  Rc::new(map)
+}
+
+fn nth_values(node: Node, inputs: InputData) -> Result<(Value, i64), anyhow::Error> {
+  Ok((
+    node.get_json_field("payload", &inputs)?,
+    node.get_number_field("nth", &inputs)?
+  ))
+}
+
+pub fn nth(node: Node, inputs: InputData) -> OutputData {
+  let mut map = HashMap::new();
+  match nth_values(node, inputs) {
+    Ok((data, _nth)) => {
+      map.insert("json".to_string(), iodata!(data[_nth as usize].clone()));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    }
+  }
+  
+  Rc::new(map)
+}
+
+fn combine_values(node: Node, inputs: InputData) -> Result<(Value, Value, Value, Value, String, String, String, String), anyhow::Error> {
+  Ok((
+    node.get_as_json_field_or("data1", &inputs, Some(json!({})))?,
+    node.get_as_json_field_or("data2", &inputs, Some(json!({})))?,
+    node.get_as_json_field_or("data3", &inputs, Some(json!({})))?,
+    node.get_as_json_field_or("data4", &inputs, Some(json!({})))?,
+    node.get_string_field("name1", &inputs).ok().and_then(fix_empty_string).unwrap_or("data1".to_string()),
+    node.get_string_field("name2", &inputs).ok().and_then(fix_empty_string).unwrap_or("data2".to_string()),
+    node.get_string_field("name3", &inputs).ok().and_then(fix_empty_string).unwrap_or("data3".to_string()),
+    node.get_string_field("name4", &inputs).ok().and_then(fix_empty_string).unwrap_or("data4".to_string()),
+  ))
+}
+
 pub fn combine(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let data1 = node.get_as_json_field("data1", &inputs).unwrap_or(json!({}));
-  let data2 = node.get_as_json_field("data2", &inputs).unwrap_or(json!({}));
-  let data3 = node.get_as_json_field("data3", &inputs).unwrap_or(json!({}));
-  let data4 = node.get_as_json_field("data4", &inputs).unwrap_or(json!({}));
-  let name1 = node.get_string_field("name1", &inputs).unwrap_or("data1".to_string());
-  let name2 = node.get_string_field("name2", &inputs).unwrap_or("data2".to_string());
-  let name3 = node.get_string_field("name3", &inputs).unwrap_or("data3".to_string());
-  let name4 = node.get_string_field("name4", &inputs).unwrap_or("data4".to_string());
-  let new_json = format!("{{ \"{}\": {}, \"{}\": {}, \"{}\": {}, \"{}\": {} }}", 
-    name1, serde_json::to_string(&data1).unwrap(),
-    name2, serde_json::to_string(&data2).unwrap(),
-    name3, serde_json::to_string(&data3).unwrap(),
-    name4, serde_json::to_string(&data4).unwrap()
-  );
-  map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&new_json).unwrap()));
+  match combine_values(node, inputs) {
+    Ok((data1, data2, data3, data4, name1, name2, name3, name4)) => {
+      let new_json = format!("{{ \"{}\": {}, \"{}\": {}, \"{}\": {}, \"{}\": {} }}", 
+        name1, serde_json::to_string(&data1).unwrap(),
+        name2, serde_json::to_string(&data2).unwrap(),
+        name3, serde_json::to_string(&data3).unwrap(),
+        name4, serde_json::to_string(&data4).unwrap()
+      );
+      map.insert("json".to_string(), iodata!(serde_json::from_str::<Value>(&new_json).unwrap()));
+    },
+    Err(e) => {
+      map.insert("json".to_string(), Err(e));
+    }
+  }
+
   Rc::new(map)
 }
 
@@ -245,21 +329,71 @@ pub fn input(payload: Value) -> Box<dyn Fn(Node, InputData) -> OutputData> {
 
 pub fn output(node: Node, inputs: InputData) -> OutputData {
   let mut map = HashMap::new();
-  let result = node.get_json_field("payload", &inputs).unwrap();
   let status = node.get_number_field("status", &inputs).unwrap();
-  map.insert("payload".to_string(), iodata!(result));
+  let field = "payload";
+  let ress = inputs.get(field)
+  .and_then(|i| i.get(&node.inputs[field].connections[0].output))
+  .map(|v| match v.as_ref() {
+    Ok(rv) => Ok(rv.get::<Value>().map(|r| r.clone()).unwrap()),
+    Err(e) => Err(e)
+  });
+  match ress {
+    Some(Ok(payload)) => {
+      map.insert("payload".to_string(), iodata!(payload));
+    },
+    Some(Err(error)) => {
+      map.insert("payload".to_string(), Err(anyhow!(format!("{:?}", error))));
+    },
+    None => {
+      map.insert("payload".to_string(), Err(anyhow!("unknown error")));
+    },
+  }
   map.insert("status".to_string(), iodata!(status));
   Rc::new(map)
 }
 
+fn script_values(node: Node, inputs: InputData) -> Result<(String, Value, String), anyhow::Error> {
+  Ok((
+    node.get_string_field("src", &inputs)?,
+    node.get_json_field("payload", &inputs)?,
+    node.get_string_field("name", &inputs)?
+  ))
+}
+
 pub fn script(node: Node, inputs: InputData) -> OutputData {
-  let _src = node.get_string_field("src", &inputs).unwrap();
-  let payload = node.get_json_field("payload", &inputs).unwrap();
-  let src = format!("function main(payload) {{ {} }}", _src);
-  let mut script = Script::from_string(&src).expect("js init failed");
-  let result: Value = script.call("main", &payload).expect("js call failed");
   let mut map = HashMap::new();
-  map.insert("payload".to_string(), iodata!(result));
+  match script_values(node, inputs) {
+    Ok((_src, payload, name)) => {
+      let src = format!("'use strict'; function main(payload) {{ {} }}", _src);
+      match Script::from_string(&src) {
+        Ok(mut script) => {
+          let result: Result<Value, AnyError> = script.call("main", &payload);
+          match result {
+            Ok(payload) => {
+              map.insert("payload".to_string(), iodata!(payload));
+            },
+            Err(e) => {
+              let re = Regex::new(r"(?P<error>.+?)\n.+\(sandboxed.js:(?P<line>\d+):(?P<col>\d+)\)\n.+:\d+").unwrap();
+              let er = format!("{:?}", &e);
+              let rep = format!("$error; @@ {} line: $line, col: $col", name);
+              let es = re.replace_all(&er, &rep).to_string();
+              map.insert("payload".to_string(), Err(anyhow!(es)));
+            },
+          };
+        },
+        Err(e) => {
+          let re = Regex::new(r"(?P<error>.+?)\n.+sandboxed.js:(?P<line>\d+):(?P<col>\d+)").unwrap();
+          let er = format!("{:?}", &e);
+          let rep = format!("$error; @@ {} line: $line, col: $col", name);
+          let es = re.replace_all(&er, &rep).to_string();
+          map.insert("payload".to_string(), Err(anyhow!(es)));
+        }
+      }
+    },
+    Err(e) => {
+      map.insert("payload".to_string(), Err(e));
+    },
+  }
   Rc::new(map)
 }
 
@@ -454,7 +588,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["json"].get::<Value>().unwrap();
+    let result = oo["json"].as_ref().unwrap().get::<Value>().unwrap();
     assert_eq!(result, &json!({ "custom1": 25, "data2": {}, "data3": { "value1": 1, "value2": true, "value3": "hello, world" }, "data4": {} }));
   }
 
@@ -490,7 +624,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["num"].get::<i64>().unwrap();
+    let result = oo["num"].as_ref().unwrap().get::<i64>().unwrap();
     assert_eq!(result, &25i64);
   }
 
@@ -553,7 +687,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["num"].get::<i64>().unwrap();
+    let result = oo["num"].as_ref().unwrap().get::<i64>().unwrap();
     assert_eq!(result, &80i64);
   }
 
@@ -616,7 +750,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["num"].get::<i64>().unwrap();
+    let result = oo["num"].as_ref().unwrap().get::<i64>().unwrap();
     assert_eq!(result, &100i64);
   }
 
@@ -680,7 +814,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["json"].get::<Value>().unwrap();
+    let result = oo["json"].as_ref().unwrap().get::<Value>().unwrap();
     assert_eq!(result, &json!({ "wrapped": { "age": 25 } }));
   }
 
@@ -842,7 +976,7 @@ mod node_test {
     let nodes = engine.parse_value(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["payload"].get::<Value>().unwrap();
+    let result = oo["payload"].as_ref().unwrap().get::<Value>().unwrap();
     assert_eq!(result, &json!({"query": r#"_id in ['1','2','3','4','5']"#}));
   }
 
@@ -963,7 +1097,7 @@ mod node_test {
     let nodes = engine.parse_json(json_data).unwrap();
     let output = engine.process(&nodes, 1);
     let oo = output.unwrap();
-    let result = oo["payload"].get::<Value>().unwrap();
+    let result = oo["payload"].as_ref().unwrap().get::<Value>().unwrap();
     assert_eq!(result, &json!({ "wrapped": 100 }));
   }  
 }

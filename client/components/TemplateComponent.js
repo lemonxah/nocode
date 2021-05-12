@@ -15,6 +15,7 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { templateSocket } from '@/components/Sockets';
 // import JsonControl from '@/components/JsonControl';
 import TemplateControl from '@/components/TemplateControl';
@@ -22,6 +23,7 @@ import TemplateControl from '@/components/TemplateControl';
 class TemplateComponent extends Rete.Component {
   constructor() {
     super('Template');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {
