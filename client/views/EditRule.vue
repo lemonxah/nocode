@@ -54,6 +54,7 @@ no-else-return: "error"
 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import ConnectionPlugin from 'rete-connection-plugin';
 import VueRenderPlugin from 'rete-vue-render-plugin';
 import AreaPlugin from 'rete-area-plugin';
@@ -185,7 +186,9 @@ export default {
     const container = document.querySelector('#rete');
     this.editor = new Rete.NodeEditor('rules@1.0.0', container);
     this.editor.use(ConnectionPlugin, { curvature: 0.4 });
-    this.editor.use(VueRenderPlugin);
+    this.editor.use(VueRenderPlugin, {
+      component: CustomNode,
+    });
     this.editor.use(ConnectionMasteryPlugin);
     this.editor.use(MinimapPlugin);
     this.editor.use(AreaPlugin, {

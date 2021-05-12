@@ -14,12 +14,14 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { floatSocket } from '@/components/Sockets';
 import FloatControl from '@/components/FloatControl';
 
 class NumComponent extends Rete.Component {
   constructor() {
     super('Float');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

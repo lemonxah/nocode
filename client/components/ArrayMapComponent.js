@@ -15,12 +15,14 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { txtSocket, jsonSocket } from '@/components/Sockets';
 import NameControl from '@/components/NameControl';
 
 class ArrayMapComponent extends Rete.Component {
   constructor() {
     super('Array Map');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

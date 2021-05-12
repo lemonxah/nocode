@@ -15,12 +15,14 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { anySocket, actionSocket } from '@/components/Sockets';
 import ConditionControl from '@/components/ConditionControl';
 
 class ConditionComponent extends Rete.Component {
   constructor() {
     super('Condition');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

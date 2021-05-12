@@ -15,6 +15,7 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import {
   templateSocket,
   txtSocket,
@@ -25,6 +26,7 @@ import {
 class HandlebarsComponent extends Rete.Component {
   constructor() {
     super('Handlebars');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {

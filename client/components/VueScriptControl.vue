@@ -93,7 +93,7 @@ export default {
   font-size: 14px;
   line-height: 1.5;
   padding: 5px;
-  width: 500px;
+  width: 800px;
 }
 
 .prism-editor__textarea:focus {
@@ -101,6 +101,6 @@ export default {
 }
 
 .height-300 {
-  height: 400px;
+  height: 700px;
 }
 </style>

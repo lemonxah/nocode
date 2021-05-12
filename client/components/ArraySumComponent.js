@@ -15,6 +15,7 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import {
   floatSocket,
   txtSocket,
@@ -25,6 +26,7 @@ import {
 class ArraySumComponent extends Rete.Component {
   constructor() {
     super('Array Sum');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {
