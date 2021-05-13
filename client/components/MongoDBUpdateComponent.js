@@ -15,11 +15,13 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { txtSocket, actionSocket, jsonSocket } from '@/components/Sockets';
 
 class MongoDBUpdateComponent extends Rete.Component {
   constructor() {
     super('MongoDB Update');
+    this.data.Component = CustomNode;
     this.data.limit = 20;
     this.data.query = 'deleted == false';
     this.data.dbname = 'rules';

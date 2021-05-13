@@ -20,6 +20,7 @@ use d3ne::workers::Workers;
 use querylib::{mongo, query, query::*};
 
 use crate::apikey::{check_access, get_apikey_without_bearer};
+use crate::util::current_millis;
 
 #[derive(Debug, Serialize, Clone)]
 pub enum RuleError {
@@ -105,7 +106,6 @@ fn setup_engine(id: &str, conn: State<Client>, payload: Value) -> Engine {
   workers.put("Array Flatten", Box::new(nodes::array_flatten));
   workers.put("Array Sum", Box::new(nodes::array_sum));
   workers.put("Array Count", Box::new(nodes::array_count));
-  workers.put("Condition", Box::new(nodes::condition));
   Engine::new(id, workers)
 }
 
@@ -173,9 +173,24 @@ pub fn run_rule(name: String, rev: Option<i64>, data: Json<JsonValue>, cookies: 
                 let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
             
                 let output = engine.process(&nodes, start_node).unwrap();
-                let payload = output["payload"].get::<Value>().unwrap();
-                let status = output["status"].get::<i64>().unwrap();
-                Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
+                let status = output["status"].as_ref().unwrap().get::<i64>().unwrap();
+                match &output["payload"] {
+                  Ok(v) => {
+                    let payload = v.get::<Value>().unwrap();
+                    Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+                      "data": payload,
+                      "rev": getrev,
+                      "timestamp": current_millis().unwrap()
+                    }).into()))    
+                  },
+                  Err(e) => {
+                    Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+                      "error": format!("{:?}", e),
+                      "rev": getrev,
+                      "timestamp": current_millis().unwrap()
+                    }).into()))  
+                  }
+                }
               } else {
                 Ok(status::Custom(Status::NotFound, json!({}).into()))
               }
@@ -287,7 +302,7 @@ pub fn save_rule(data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -
           doc!("$set": doc!("latest_rev": nextrev))
         };
         let _res = metacoll.find_one_and_update(query.clone(), metaupdate, meta_options);
-        let res = coll.insert_one(doc!("name": name, "payload": payload, "rule": rule, "rev": nextrev), None);
+        let res = coll.insert_one(doc!("name": name, "payload": payload, "rule": rule, "rev": nextrev, "timestamp": current_millis().unwrap_or_default()), None);
         match res {
           Ok(_) => {
             Ok(status::Custom(Status::Ok, json!({"rev": nextrev}).into()))
@@ -356,9 +371,24 @@ pub fn test_rule(data: Json<Value>, cookies: Cookies, conn: State<Client>) -> Re
         let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
         let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
         let output = engine.process(&nodes, start_node).unwrap();
-        let payload = output["payload"].get::<Value>().unwrap();
-        let status = output["status"].get::<i64>().unwrap();
-        Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!(payload).into()))
+        let status = output["status"].as_ref().unwrap().get::<i64>().unwrap();
+        match &output["payload"] {
+          Ok(v) => {
+            let payload = v.get::<Value>().unwrap();
+            Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+              "data": payload,
+              "rev": -1,
+              "timestamp": current_millis().unwrap()
+            }).into()))    
+          },
+          Err(e) => {
+            Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+              "error": format!("{:?}", e),
+              "rev": -1,
+              "timestamp": current_millis().unwrap()
+            }).into()))  
+          }
+        }
       } else {
         Ok(status::Custom(Status::NotFound, json!({}).into()))
       }

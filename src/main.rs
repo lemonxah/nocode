@@ -15,9 +15,12 @@ extern crate crypto;
 extern crate uuid;
 extern crate mongodb;
 extern crate tokio;
+extern crate regex;
 #[macro_use] extern crate d3ne;
+#[macro_use] extern crate anyhow;
 extern crate handlebars;
 extern crate js_sandbox;
+
 
 #[macro_use] mod util;
 mod apikey;

@@ -15,12 +15,14 @@ no-param-reassign: [
 /* eslint-env es6 */
 
 import Rete from 'rete';
+import CustomNode from '@/components/CustomNode.vue';
 import { numSocket, jsonSocket } from '@/components/Sockets';
 import NumControl from '@/components/NumControl';
 
 class ArrayNthComponent extends Rete.Component {
   constructor() {
     super('Nth');
+    this.data.Component = CustomNode;
   }
 
   builder(node) {
