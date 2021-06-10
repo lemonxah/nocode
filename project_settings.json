@@ -52,7 +52,8 @@
                     "https://dev.operations.wealthmigrate.com",
                     "https://dev.platform.privatewealthglobal.com",
                     "https://dev.api.wealthmigrate.com",
-                    "https://dev.invest.rewardprop.com"
+                    "https://dev.invest.rewardprop.com",
+                    "https://dev.institution.wealthpoint.app"
                   ]
                 }
               },
@@ -98,7 +99,8 @@
                     "https://stg.operations.wealthmigrate.com",
                     "https://stg.platform.privatewealthglobal.com",
                     "https://stg.api.wealthmigrate.com",
-                    "https://stg.invest.rewardprop.com"
+                    "https://stg.invest.rewardprop.com",
+                    "https://stg.institution.wealthpoint.app"
                   ]
                 }
               },
@@ -144,7 +146,8 @@
                     "https://platform.privatewealthglobal.com",
                     "https://prd.api.wealthmigrate.com",
                     "https://invest.worldwidecapitalpartners.com",
-                    "https://invest.rewardprop.com"
+                    "https://invest.rewardprop.com",
+                    "https://institution.wealthpoint.app"
                   ]
                 }
               },
