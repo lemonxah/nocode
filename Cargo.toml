@@ -6,9 +6,9 @@ edition = "2018"
 
 [dependencies]
 jwt = "0.10.0"
-rocket = "0.4.7"
-rocket_codegen = "0.4.7"
-rocket_contrib = { version = "0.4.7", default-features = false, features = ["json"] }
+rocket = "0.4.10"
+rocket_codegen = "0.4.10"
+rocket_contrib = { version = "0.4.10", default-features = false, features = ["json"] }
 rocket_cors = "0.5.2"
 serde = "1.0.123"
 serde_json = "1.0.64"
@@ -21,7 +21,7 @@ sha2 = "0.9.1"
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
 rust-crypto = "0.2.36"
 
-handlebars = "3.5.3"
+handlebars = "4.0.0"
 js-sandbox = "0.1.5"
 
 d3ne = "0.5.3"
