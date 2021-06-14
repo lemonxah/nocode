@@ -19,13 +19,12 @@ use d3ne::workers::Workers;
 
 use querylib::{mongo, query, query::*};
 
-use crate::apikey::{check_access, get_apikey_without_bearer};
+use crate::apikey::{check_access, get_apikey_without_bearer, ApiKey};
 use crate::util::current_millis;
 
 #[derive(Debug, Serialize, Clone)]
 pub enum RuleError {
   MongoError(String),
-  NoneError,
   SystemTimeError,
   BsonError,
   JsonError,
@@ -35,7 +34,6 @@ impl std::fmt::Display for RuleError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", match self {
       RuleError::MongoError(_) => "Database error",
-      RuleError::NoneError => "NoneError",
       RuleError::SystemTimeError => "SystemTimeError",
       RuleError::BsonError => "BsonError",
       RuleError::JsonError => "JsonError",
@@ -64,12 +62,6 @@ impl From<bson::de::Error> for RuleError {
 impl From<std::time::SystemTimeError> for RuleError {
   fn from(_: std::time::SystemTimeError) -> Self {
     RuleError::SystemTimeError
-  }
-}
-
-impl From<std::option::NoneError> for RuleError {
-  fn from(_: std::option::NoneError) -> Self {
-    RuleError::NoneError
   }
 }
 
@@ -141,74 +133,66 @@ pub fn set_active(name: String, data: Json<JsonValue>, cookies: Cookies, conn: S
 }
 
 #[post("/rules/<name>?<rev>",format="application/json", data="<data>")]
-pub fn run_rule(name: String, rev: Option<i64>, data: Json<JsonValue>, cookies: Cookies, conn: State<Client>) -> Result<status::Custom<JsonValue>, RuleError> {
-  let apikey_str = cookies.get("auth").map(|c| c.value().to_string()).or(std::env::var("AUTH").ok()).unwrap_or("".to_string());
-  match get_apikey_without_bearer(&apikey_str) {
-    Ok(apikey) => {
-      if check_access(&apikey, "rules", "run") {
-        let db = conn.database("rules");
-        let coll = db.collection("rules");
-        let metacoll = db.collection("rulesmeta");
-        let pquery = query::parse::from_str(&format!("name == '{}'", name));
-        let query = mongo::to_bson(pquery.clone());
-        let options = FindOptions::builder()
-          .limit(1)
-          .build();
-        let metacursor = metacoll.find(query.clone(), Some(options.clone()))?;
-        let meta: Vec<Value> = to_vec!(metacursor);
+pub fn run_rule(name: String, rev: Option<i64>, data: Json<JsonValue>, conn: State<Client>, apikey: ApiKey) -> Result<status::Custom<JsonValue>, RuleError> {
+  if check_access(&apikey, "rules", "run") {
+    let db = conn.database("rules");
+    let coll = db.collection("rules");
+    let metacoll = db.collection("rulesmeta");
+    let pquery = query::parse::from_str(&format!("name == '{}'", name));
+    let query = mongo::to_bson(pquery.clone());
+    let options = FindOptions::builder()
+      .limit(1)
+      .build();
+    let metacursor = metacoll.find(query.clone(), Some(options.clone()))?;
+    let meta: Vec<Value> = to_vec!(metacursor);
+    
+    if meta.len() > 0 {
+      let active: i64 = meta[0]["active_rev"].as_i64().unwrap_or(1i64);
+      let getrev = rev.unwrap_or(active);
+      let q2 = mongo::to_bson(query!(..pquery && "rev" == getrev));
+      match coll.find(q2.clone(), Some(options)) {
+        Ok(cursor) => {
+          let vec: Vec<Value> = to_vec!(cursor);
+          if vec.len() > 0 {
+            let entry = vec[0].clone();
+            let engine = setup_engine("rules@1.0.0", conn, data.0.into());
+            // let json_data: String = serde_json::to_string(&entry["rule"]).unwrap();
+            let nodes = engine.parse_value(entry["rule"].clone()).unwrap();
+            let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
+            let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
         
-        if meta.len() > 0 {
-          let active: i64 = meta[0]["active_rev"].as_i64().unwrap_or(1i64);
-          let getrev = rev.unwrap_or(active);
-          let q2 = mongo::to_bson(query!(..pquery && "rev" == getrev));
-          match coll.find(q2.clone(), Some(options)) {
-            Ok(cursor) => {
-              let vec: Vec<Value> = to_vec!(cursor);
-              if vec.len() > 0 {
-                let entry = vec[0].clone();
-                let engine = setup_engine("rules@1.0.0", conn, data.0.into());
-                // let json_data: String = serde_json::to_string(&entry["rule"]).unwrap();
-                let nodes = engine.parse_value(entry["rule"].clone()).unwrap();
-                let nnodes = nodes.values().cloned().collect::<Vec<_>>().into_iter();
-                let start_node = nnodes.clone().filter(|n| n.name == "Input").map(|n| n.id).min().unwrap_or(nnodes.map(|n| n.id).min().unwrap());
-            
-                let output = engine.process(&nodes, start_node).unwrap();
-                let status = output["status"].as_ref().unwrap().get::<i64>().unwrap();
-                match &output["payload"] {
-                  Ok(v) => {
-                    let payload = v.get::<Value>().unwrap();
-                    Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
-                      "data": payload,
-                      "rev": getrev,
-                      "timestamp": current_millis().unwrap()
-                    }).into()))    
-                  },
-                  Err(e) => {
-                    Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
-                      "error": format!("{:?}", e),
-                      "rev": getrev,
-                      "timestamp": current_millis().unwrap()
-                    }).into()))  
-                  }
-                }
-              } else {
-                Ok(status::Custom(Status::NotFound, json!({}).into()))
+            let output = engine.process(&nodes, start_node).unwrap();
+            let status = output["status"].as_ref().unwrap().get::<i64>().unwrap();
+            match &output["payload"] {
+              Ok(v) => {
+                let payload = v.get::<Value>().unwrap();
+                Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+                  "data": payload,
+                  "rev": getrev,
+                  "timestamp": current_millis().unwrap()
+                }).into()))    
+              },
+              Err(e) => {
+                Ok(status::Custom(Status::new((*status).try_into().unwrap(), ""), json!({
+                  "error": format!("{:?}", e),
+                  "rev": getrev,
+                  "timestamp": current_millis().unwrap()
+                }).into()))  
               }
-            },
-            Err(_) => {
-              Ok(status::Custom(Status::InternalServerError, json!({}).into()))
             }
+          } else {
+            Ok(status::Custom(Status::NotFound, json!({}).into()))
           }
-        } else {
-          Ok(status::Custom(Status::NotFound, json!({}).into()))
+        },
+        Err(_) => {
+          Ok(status::Custom(Status::InternalServerError, json!({}).into()))
         }
-      } else {
-        Ok(status::Custom(Status::Unauthorized, json!({}).into()))
       }
-    },
-    Err(_) => {
-      Ok(status::Custom(Status::Unauthorized, json!({"error": "token missing or invalid"}).into()))
+    } else {
+      Ok(status::Custom(Status::NotFound, json!({}).into()))
     }
+  } else {
+    Ok(status::Custom(Status::Unauthorized, json!({}).into()))
   }
 }
 

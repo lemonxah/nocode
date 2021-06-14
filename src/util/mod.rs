@@ -13,10 +13,10 @@ pub fn current_millis() -> Result<i64, std::time::SystemTimeError> {
 }
 
 #[catch(401)]
-pub fn unauthorized_catcher(req: &rocket::Request<'_>) -> Result<status::Custom<JsonValue>, std::option::NoneError> {
+pub fn unauthorized_catcher(req: &rocket::Request<'_>) -> status::Custom<JsonValue> {
   let o = req.guard::<ApiKey>();
   if o.is_failure() {
-    let (_, err) = o.failed()?;
+    let (_, err) = o.failed().unwrap();
     let (c, msg) = match err {
       ApiKeyError::BadCount => (1, "too many authorization headers"),
       ApiKeyError::Invalid => (2, "invalid token"),
@@ -25,9 +25,9 @@ pub fn unauthorized_catcher(req: &rocket::Request<'_>) -> Result<status::Custom<
       ApiKeyError::SysTimeError(_) => (5, "system time error"),
       ApiKeyError::InvalidKeyLength => (6, "invalid secret key length")
     };
-    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":c, "message": msg}]}]).into()))
+    status::Custom(Status::Unauthorized, json!([{"errors": [{"code":c, "message": msg}]}]).into())
   } else {
-    Ok(status::Custom(Status::Unauthorized, json!([{"errors": [{"code":0, "message": "unknown"}]}]).into()))
+    status::Custom(Status::Unauthorized, json!([{"errors": [{"code":0, "message": "unknown"}]}]).into())
   }
 }
 
