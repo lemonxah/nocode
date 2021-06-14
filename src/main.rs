@@ -1,6 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #![feature(option_result_contains)]
-#![feature(try_trait)]
 
 #[macro_use] extern crate rocket;
 extern crate rocket_contrib;
