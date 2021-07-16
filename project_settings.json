@@ -54,9 +54,9 @@
                     "https://dev.api.wealthmigrate.com",
                     "https://dev.invest.rewardprop.com",
                     "https://dev.institution.wealthpoint.app",
-                    "https://dev.rei.wealthpoint.app",
-                    "https://dev.sapin.wealthpoint.app",
-                    "https://dev.justproperty.wealthpoint.app"
+                    "https://dev.invest.just.property",
+                    "https://dev.global.sapropertynetwork.com",
+                    "https://dev.rei.wealthpoint.app"
                   ]
                 }
               },
@@ -104,9 +104,9 @@
                     "https://stg.api.wealthmigrate.com",
                     "https://stg.invest.rewardprop.com",
                     "https://stg.institution.wealthpoint.app",
-                    "https://stg.rei.wealthpoint.app",
-                    "https://stg.sapin.wealthpoint.app",
-                    "https://stg.justproperty.wealthpoint.app"
+                    "https://stg.invest.just.property",
+                    "https://stg.global.sapropertynetwork.com",
+                    "https://stg.rei.wealthpoint.app"
                   ]
                 }
               },
@@ -154,9 +154,9 @@
                     "https://invest.worldwidecapitalpartners.com",
                     "https://invest.rewardprop.com",
                     "https://institution.wealthpoint.app",
-                    "https://rei.wealthpoint.app",
-                    "https://sapin.wealthpoint.app",
-                    "https://justproperty.wealthpoint.app"
+                    "https://invest.just.property",
+                    "https://global.sapropertynetwork.com",
+                    "https://rei.wealthpoint.app"
                   ]
                 }
               },
