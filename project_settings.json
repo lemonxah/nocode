@@ -57,7 +57,9 @@
                     "https://dev.invest.just.property",
                     "https://dev.global.sapropertynetwork.com",
                     "https://dev.rei.wealthpoint.app",
-                    "https://dev.stockcap.wealthpoint.app"
+                    "https://dev.stockcap.wealthpoint.app"	,
+                    "https://dev.network.neumainvestments.com",
+                    "https://dev.yachties.wealthpoint.app"
                   ]
                 }
               },
@@ -108,7 +110,9 @@
                     "https://stg.invest.just.property",
                     "https://stg.global.sapropertynetwork.com",
                     "https://stg.rei.wealthpoint.app",
-                    "https://stg.stockcap.wealthpoint.app"
+                    "https://stg.stockcap.wealthpoint.app",
+                    "https://stg.network.neumainvestments.com",
+                    "https://stg.yachties.wealthpoint.app"
                   ]
                 }
               },
@@ -159,7 +163,9 @@
                     "https://invest.just.property",
                     "https://global.sapropertynetwork.com",
                     "https://rei.wealthpoint.app",
-                    "https://stockcap.wealthpoint.app"
+                    "https://stockcap.wealthpoint.app",
+                    "https://network.neumainvestments.com",
+                    "https://yachties.wealthpoint.app"
                   ]
                 }
               },
