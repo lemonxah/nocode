@@ -15,7 +15,7 @@ RUN yarn
 RUN yarn build
 
 FROM rust:1.50.0 as builder
-RUN rustup default nightly-2021-07-06
+RUN rustup default nightly-2021-08-17
 COPY Cargo.toml .
 COPY Rocket.toml .
 COPY dummy.rs .
