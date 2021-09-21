@@ -59,7 +59,7 @@
                     "https://dev.rei.wealthpoint.app",
                     "https://dev.stockcap.wealthpoint.app"	,
                     "https://dev.network.neumainvestments.com",
-                    "https://dev.yachties.wealthpoint.app"
+                    "https://dev.invest.yachtieswealth.com"
                   ]
                 }
               },
@@ -112,7 +112,7 @@
                     "https://stg.rei.wealthpoint.app",
                     "https://stg.stockcap.wealthpoint.app",
                     "https://stg.network.neumainvestments.com",
-                    "https://stg.yachties.wealthpoint.app"
+                    "https://stg.invest.yachtieswealth.com"
                   ]
                 }
               },
@@ -165,7 +165,7 @@
                     "https://rei.wealthpoint.app",
                     "https://stockcap.wealthpoint.app",
                     "https://network.neumainvestments.com",
-                    "https://yachties.wealthpoint.app"
+                    "https://invest.yachtieswealth.com"
                   ]
                 }
               },
