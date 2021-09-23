@@ -48,8 +48,10 @@
                 "Some": {
                   "exact": [
                     "https://dev.platform.wealthmigrate.com",
+                    "https://dev.platform.wealthpoint.app",
                     "http://localhost:3000",
                     "https://dev.operations.wealthmigrate.com",
+                    "https://dev.operations.wealthpoint.app",
                     "https://dev.platform.privatewealthglobal.com",
                     "https://dev.api.wealthmigrate.com",
                     "https://dev.invest.rewardprop.com",
@@ -102,8 +104,10 @@
                 "Some": {
                   "exact": [
                     "https://stg.platform.wealthmigrate.com",
+                    "https://stg.platform.wealthpoint.app",
                     "http://localhost:3000",
                     "https://stg.operations.wealthmigrate.com",
+                    "https://stg.operations.wealthpoint.app",
                     "https://stg.platform.privatewealthglobal.com",
                     "https://stg.api.wealthmigrate.com",
                     "https://stg.invest.rewardprop.com",
@@ -156,7 +160,9 @@
                 "Some": {
                   "exact": [
                     "https://platform.wealthmigrate.com",
+                    "https://platform.wealthpoint.app",
                     "https://operations.wealthmigrate.com",
+                    "https://operations.wealthpoint.app",
                     "https://platform.privatewealthglobal.com",
                     "https://prd.api.wealthmigrate.com",
                     "https://invest.worldwidecapitalpartners.com",
