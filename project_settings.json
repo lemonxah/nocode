@@ -8,17 +8,17 @@
           {
             "dev": [
               {
-                "VUE_APP_API_URL": "https://dev.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://dev.api.wealthpoint.app"
               }
             ],
             "stg": [
               {
-                "VUE_APP_API_URL": "https://stg.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://stg.api.wealthpoint.app"
               }
             ],
             "prd": [
               {
-                "VUE_APP_API_URL": "https://prd.api.wealthmigrate.com"
+                "VUE_APP_API_URL": "https://prd.api.wealthpoint.app"
               }
             ]
           }
@@ -47,11 +47,11 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
-                    "https://dev.platform.wealthmigrate.com",
+                    "https://dev.platform.wealthpoint.app",
                     "http://localhost:3000",
-                    "https://dev.operations.wealthmigrate.com",
+                    "https://dev.operations.wealthpoint.app",
                     "https://dev.platform.privatewealthglobal.com",
-                    "https://dev.api.wealthmigrate.com",
+                    "https://dev.api.wealthpoint.app",
                     "https://dev.invest.rewardprop.com",
                     "https://dev.institution.wealthpoint.app",
                     "https://dev.invest.just.property",
@@ -100,11 +100,11 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
-                    "https://stg.platform.wealthmigrate.com",
+                    "https://stg.platform.wealthpoint.app",
                     "http://localhost:3000",
-                    "https://stg.operations.wealthmigrate.com",
+                    "https://stg.operations.wealthpoint.app",
                     "https://stg.platform.privatewealthglobal.com",
-                    "https://stg.api.wealthmigrate.com",
+                    "https://stg.api.wealthpoint.app",
                     "https://stg.invest.rewardprop.com",
                     "https://stg.institution.wealthpoint.app",
                     "https://stg.invest.just.property",
@@ -153,10 +153,10 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
-                    "https://platform.wealthmigrate.com",
-                    "https://operations.wealthmigrate.com",
+                    "https://platform.wealthpoint.app",
+                    "https://operations.wealthpoint.app",
                     "https://platform.privatewealthglobal.com",
-                    "https://prd.api.wealthmigrate.com",
+                    "https://prd.api.wealthpoint.app",
                     "https://invest.worldwidecapitalpartners.com",
                     "https://invest.rewardprop.com",
                     "https://institution.wealthpoint.app",
@@ -209,13 +209,13 @@
           "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
-              "*.wealthmigrate.com": "/v1/rules"
+              "*.wealthpoint.app": "/v1/rules"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruletest"
+              "*.wealthpoint.app": "/v1/ruletest"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruleview"
+              "*.wealthpoint.app": "/v1/ruleview"
             }
           ]
         },
@@ -223,13 +223,13 @@
           "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
-              "*.wealthmigrate.com": "/v1/rules"
+              "*.wealthpoint.app": "/v1/rules"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruletest"
+              "*.wealthpoint.app": "/v1/ruletest"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruleview"
+              "*.wealthpoint.app": "/v1/ruleview"
             }
           ]
         },
@@ -237,13 +237,13 @@
           "healthcheck": "/v1/ruletest/healthcheck",
           "routes": [
             {
-              "*.wealthmigrate.com": "/v1/rules"
+              "*.wealthpoint.app": "/v1/rules"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruletest"
+              "*.wealthpoint.app": "/v1/ruletest"
             },
             {
-              "*.wealthmigrate.com": "/v1/ruleview"
+              "*.wealthpoint.app": "/v1/ruleview"
             }
           ]
         }
