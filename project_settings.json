@@ -47,8 +47,10 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
+                    "https://dev.platform.wealthmigrate.com",
                     "https://dev.platform.wealthpoint.app",
                     "http://localhost:3000",
+                    "https://dev.operations.wealthmigrate.com",
                     "https://dev.operations.wealthpoint.app",
                     "https://dev.platform.privatewealthglobal.com",
                     "https://dev.api.wealthpoint.app",
@@ -59,7 +61,9 @@
                     "https://dev.rei.wealthpoint.app",
                     "https://dev.stockcap.wealthpoint.app"	,
                     "https://dev.network.neumainvestments.com",
-                    "https://dev.yachties.wealthpoint.app"
+                    "https://dev.invest.yachtieswealth.com",
+                    "https://dev.invest.wealthpoint.app",
+                    "https://dev.legacybuildersglobal.wealthpoint.app"
                   ]
                 }
               },
@@ -100,8 +104,10 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
+                    "https://stg.platform.wealthmigrate.com",
                     "https://stg.platform.wealthpoint.app",
                     "http://localhost:3000",
+                    "https://stg.operations.wealthmigrate.com",
                     "https://stg.operations.wealthpoint.app",
                     "https://stg.platform.privatewealthglobal.com",
                     "https://stg.api.wealthpoint.app",
@@ -112,7 +118,9 @@
                     "https://stg.rei.wealthpoint.app",
                     "https://stg.stockcap.wealthpoint.app",
                     "https://stg.network.neumainvestments.com",
-                    "https://stg.yachties.wealthpoint.app"
+                    "https://stg.invest.yachtieswealth.com",
+                    "https://stg.invest.wealthpoint.app",
+                    "https://stg.legacybuildersglobal.wealthpoint.app"
                   ]
                 }
               },
@@ -153,7 +161,9 @@
               "allowed_origins": {
                 "Some": {
                   "exact": [
+                    "https://platform.wealthmigrate.com",
                     "https://platform.wealthpoint.app",
+                    "https://operations.wealthmigrate.com",
                     "https://operations.wealthpoint.app",
                     "https://platform.privatewealthglobal.com",
                     "https://prd.api.wealthpoint.app",
@@ -165,7 +175,9 @@
                     "https://rei.wealthpoint.app",
                     "https://stockcap.wealthpoint.app",
                     "https://network.neumainvestments.com",
-                    "https://yachties.wealthpoint.app"
+                    "https://invest.yachtieswealth.com",
+                    "https://invest.wealthpoint.app",
+                    "https://legacybuildersglobal.wealthpoint.app"
                   ]
                 }
               },
