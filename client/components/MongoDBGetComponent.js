@@ -29,7 +29,7 @@ class MongoDBGetComponent extends Rete.Component {
     this.data.Component = CustomNode;
     this.data.limit = 20;
     this.data.query = 'deleted == false';
-    this.data.dbname = 'rules';
+    this.data.dbname = 'flows';
     this.data.colname = 'cache';
   }
 

@@ -21,7 +21,7 @@ import NameControl from '@/components/NameControl';
 
 class ToJsonComponent extends Rete.Component {
   constructor() {
-    super('ToJSON');
+    super('ToJson');
     this.data.Component = CustomNode;
   }
 

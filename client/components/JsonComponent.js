@@ -21,7 +21,7 @@ import JsonControl from '@/components/JsonControl';
 
 class JsonComponent extends Rete.Component {
   constructor() {
-    super('JSON');
+    super('Json');
     this.data.Component = CustomNode;
   }
 

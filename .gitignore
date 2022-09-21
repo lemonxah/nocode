@@ -3,6 +3,7 @@
 /out
 /node_modules
 /dist
+.db
 .env
 serve.sh
 .vscode

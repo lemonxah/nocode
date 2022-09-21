@@ -15,15 +15,14 @@ extern crate uuid;
 extern crate mongodb;
 extern crate tokio;
 extern crate regex;
-#[macro_use] extern crate d3ne;
+extern crate d3ne;
 #[macro_use] extern crate anyhow;
 extern crate handlebars;
 extern crate js_sandbox;
 
 
 #[macro_use] mod util;
-mod apikey;
-mod rules;
+mod nocode;
 
 use rocket::response::NamedFile;
 use rocket::http::Status;
@@ -59,32 +58,32 @@ impl From<mongodb::error::Error> for MainError {
   }
 }
 
-#[get("/ruletest/healthcheck")]
+#[get("/flowtest/healthcheck")]
 fn healthcheck() -> Status {
   Status::Ok
 }
 
-#[get("/ruleview")]
+#[get("/flowview")]
 fn index() -> io::Result<NamedFile> {
     NamedFile::open("./dist/index.html")
 }
 
-#[get("/ruleview/edit/<_name>")]
+#[get("/flowview/edit/<_name>")]
 fn edit(_name: String) -> io::Result<NamedFile> {
     NamedFile::open("./dist/index.html")
 }
 
-#[get("/ruleview/js/<file..>")]
+#[get("/flowview/js/<file..>")]
 fn js_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/js/").join(file)).ok()
 }
 
-#[get("/ruleview/css/<file..>")]
+#[get("/flowview/css/<file..>")]
 fn css_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/css/").join(file)).ok()
 }
 
-#[get("/ruleview/img/<file..>")]
+#[get("/flowview/img/<file..>")]
 fn img_files(file: PathBuf) -> Option<NamedFile> {
   NamedFile::open(Path::new("./dist/img/").join(file)).ok()
 }
@@ -99,7 +98,7 @@ async fn main() -> std::result::Result<(), MainError> {
   
   let mut client_options = ClientOptions::parse(&conn_string)?;
 
-  client_options.app_name = Some("rules".to_string());
+  client_options.app_name = Some("flows".to_string());
   let client = Client::with_options(client_options)?;
 
   let cors: Cors = match env::var("CORS_JSON") {
@@ -108,14 +107,14 @@ async fn main() -> std::result::Result<(), MainError> {
   }.to_cors()?;
 
   rocket::ignite()
-    .mount("/v1", routes![
+    .mount("/", routes![
       healthcheck,
-      rules::save_rule,
-      rules::get_rules,
-      rules::get_rule,
-      rules::run_rule,
-      rules::test_rule,
-      rules::set_active,
+      nocode::save_flow,
+      nocode::get_flows,
+      nocode::get_flow,
+      nocode::run_flow,
+      nocode::test_flow,
+      nocode::set_active,
       index,
       edit,
       js_files,
@@ -124,7 +123,6 @@ async fn main() -> std::result::Result<(), MainError> {
       ])
     .attach(cors)
     .register(catchers![
-      util::unauthorized_catcher, 
       util::not_found_catcher,
     ]).manage(client).launch();
     Ok(())

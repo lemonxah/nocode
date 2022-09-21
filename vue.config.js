@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  publicPath: '/v1/ruleview',
+  publicPath: '/flowview',
   runtimeCompiler: true,
   chainWebpack: (config) => {
     config

@@ -1,15 +1,10 @@
+/* eslint-disable no-unused-vars */
 import Vue from 'vue';
 import Vuex from 'vuex';
 import jwtdecode from 'vue-jwt-decode';
 import axios from 'axios';
 
 Vue.use(Vuex);
-
-const checkToken = async (state, dispatch) => {
-  if (!state?.jwt || state?.jwt?.exp <= (new Date().getTime() + 60000)) {
-    await dispatch('refresh');
-  }
-};
 
 export default new Vuex.Store({
   state: {
@@ -25,73 +20,51 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async checkRefresh({ state, dispatch }) {
-      await checkToken(state, dispatch);
-    },
-    async refresh({ commit }) {
-      try {
-        const result = await axios.get(`${process.env.VUE_APP_API_URL}/v1/users/token`, {
-          withCredentials: true,
-        });
-        // eslint-disable-next-line
-        const jwtstring = result.data.data[0].access_token;
-        commit('login', jwtstring);
-      } catch (e) {
-        commit('logout');
-      }
-    },
-    async getRule({ state, dispatch }, name) {
-      await checkToken(state, dispatch);
-      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules/${name}`, {
+    async getFlow(_context, name) {
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/flows/${name}`, {
         withCredentials: true,
       });
       return res.data;
     },
-    async getRuleRev({ state, dispatch }, { name, rev }) {
-      await checkToken(state, dispatch);
-      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules/${name}?rev=${rev}`, {
+    async getFlowRev(_context, { name, rev }) {
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/flows/${name}?rev=${rev}`, {
         withCredentials: true,
       });
       return res.data;
     },
-    async getRules({ state, dispatch }) {
-      await checkToken(state, dispatch);
-      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules`, {
+    async getFlows(_context) {
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/flows`, {
         withCredentials: true,
       });
       return res.data;
     },
-    async getRuleMeta({ state, dispatch }, { name }) {
-      await checkToken(state, dispatch);
-      const res = await axios.get(`${process.env.VUE_APP_API_URL}/v1/rules?name=${name}`, {
+    async getFlowMeta(_context, { name }) {
+      const res = await axios.get(`${process.env.VUE_APP_API_URL}/flows?name=${name}`, {
         withCredentials: true,
       });
       return res.data?.[0];
     },
-    async saveRule({ state, dispatch }, { name, payload, rule }) {
-      await checkToken(state, dispatch);
-      const res = await axios.post(`${process.env.VUE_APP_API_URL}/v1/rules/`, {
+    async saveFlow(_context, { name, payload, flow }) {
+      const res = await axios.post(`${process.env.VUE_APP_API_URL}/flows/`, {
         name,
         payload,
-        rule,
+        flow,
       }, {
         withCredentials: true,
       });
       return res.data;
     },
-    async setActive({ state, dispatch }, { name, rev }) {
-      await checkToken(state, dispatch);
-      await axios.post(`${process.env.VUE_APP_API_URL}/v1/rules/${name}/setactive`, {
+    async setActive(_context, { name, rev }) {
+      await axios.post(`${process.env.VUE_APP_API_URL}/flows/${name}/setactive`, {
         rev,
       }, {
         withCredentials: true,
       });
     },
-    async testRule({ state, dispatch }, { payload, rule }) {
-      await checkToken(state, dispatch);
-      const res = await axios.post(`${process.env.VUE_APP_API_URL}/v1/ruletest`, {
+    async testFlow(_context, { payload, flow }) {
+      const res = await axios.post(`${process.env.VUE_APP_API_URL}/flowtest`, {
         payload,
-        rule,
+        flow,
       }, {
         withCredentials: true,
       });

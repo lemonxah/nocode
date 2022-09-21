@@ -1,21 +1,21 @@
 <template>
   <div class="flow-root h-screen bg-gray-300">
     <div class="w-full bg-gray-700 text-white text-3xl p-5">
-      Rules
+      Flows
     </div>
     <div class="ml-1 rounded-md mt-3 bg-gray-700 w-1/3 flex">
-      <input class="focus:outline-none flex-1 text-xl p-1" placeholder="new rule name (minimum 4 chars)" v-model="newrule" type="text">
+      <input class="focus:outline-none flex-1 text-xl p-1" placeholder="new flow name (minimum 4 chars)" v-model="newflow" type="text">
       <div class="rounded bg-gray-700 text-white text-lg p-1">
-        <router-link v-if="hasRuleName" :to="{ name: 'edit', params: { rule_name: this.newrule }}" class="">
-          New Rule
+        <router-link v-if="hasFlowName" :to="{ name: 'edit', params: { flow_name: this.newflow }}" class="">
+          New Flow
         </router-link>
         <span v-else class="cursor-pointer" @mousedown.prevent>
-          New Rule
+          New Flow
         </span>
       </div>
     </div>
     <div class="mt-3 w-1/2">
-      <div v-for="item in rules" :key="item.name" class="p-2 bg-gray-700 rounded-md m-1 text-2xl text-white">
+      <div v-for="item in flows" :key="item.name" class="p-2 bg-gray-700 rounded-md m-1 text-2xl text-white">
         <div class="flex" >
           <div class="my-auto">
             {{ item.name }}
@@ -41,7 +41,7 @@
           <div class="ml-4 my-auto w-16 text-right border border-white rounded px-2 py-1">
             {{ item.latest_rev }}
           </div>
-          <router-link :to="{ name: 'edit', params: { rule_name: item.name }}" class="rounded cursor-pointer text-white bg-blue-800 py-1 px-4 ml-5">
+          <router-link :to="{ name: 'edit', params: { flow_name: item.name }}" class="rounded cursor-pointer text-white bg-blue-800 py-1 px-4 ml-5">
             Edit
           </router-link>
         </div>
@@ -56,24 +56,24 @@ import { mapActions } from 'vuex';
 export default {
   data() {
     return {
-      rules: [],
-      newrule: '',
+      flows: [],
+      newflow: '',
     };
   },
   async mounted() {
     try {
-      this.rules = await this.getRules();
+      this.flows = await this.getFlows();
     } catch (e) {
       // console.log(e);
     }
   },
   computed: {
-    hasRuleName() {
-      return this.newrule.length > 3;
+    hasFlowName() {
+      return this.newflow.length > 3;
     },
   },
   methods: {
-    ...mapActions(['getRules', 'setActive']),
+    ...mapActions(['getFlows', 'setActive']),
     revRange(max) {
       return [...Array(max).keys()].map((i) => i + 1);
     },

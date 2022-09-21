@@ -36,10 +36,10 @@ COPY --from=node_builder \
     /dist
 
 COPY --from=builder \
-    output/rules \
+    output/nocode \
     /
 COPY --from=builder \
     /Rocket.toml \
     /
 
-CMD /rules
+CMD /nocode
